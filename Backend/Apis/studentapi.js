@@ -1,5 +1,5 @@
 import exp from "express"
-import { studentmodel } from "../Models/studentmodule.js"
+import { studentmodel } from "../modules/studentmodule.js"
 import { ReturnDocument } from "mongodb";
 
 export const studentapp=exp.Router();

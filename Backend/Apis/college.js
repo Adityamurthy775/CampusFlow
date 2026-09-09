@@ -1,5 +1,5 @@
 import exp from "express"
-import {collegemodel} from'../Models/college.js'
+import {collegemodel} from'../modules/college.js'
 
 export const collegeapp=exp.Router();
 

@@ -1,5 +1,5 @@
 import exp from "express";
-import {deptmodel} from "../Models/department.js"
+import {deptmodel} from "../modules/department.js"
 
 export const deptapp=exp.Router();
 

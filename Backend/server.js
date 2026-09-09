@@ -5,6 +5,9 @@ import { studentapp } from './Apis/studentapi.js';
 import { facultyapp } from './Apis/faculty.js';
 import { collegeapp } from './Apis/college.js';
 import {deptapp} from './Apis/dept.js'
+import { courseapp } from './Apis/courses.js';
+import { subjectapp } from './Apis/subject.js';
+import { assignmentapp } from './Apis/assignment.js';
 let app=exp();
 let port =4000;
 //to convert the json structure to js structure
@@ -15,6 +18,9 @@ app.use("/student-api",studentapp)
 app.use("/faculty-api",facultyapp)
 app.use("/college-api",collegeapp)
 app.use("/dept-api",deptapp)
+app.use("/course-api",courseapp)
+app.use("/subject-api",subjectapp)
+app.use("/assignment-api",assignmentapp)
 //connection to the database
 async function connection() {
   try{
@@ -23,7 +29,7 @@ async function connection() {
     app.listen(port,()=>console.log("Database is live"))
   }
   catch(error){
-    console.log("Error connecting to the Database ",error)
+    console.log("Error connecting to the Database ",error.message)
   }
 }
 //calling the database connection

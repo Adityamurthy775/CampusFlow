@@ -1,5 +1,5 @@
 import exp from "express"
-import { usermodel } from "../Models/User.js";
+import { usermodel } from "../modules/User.js";
 import bcryptjs  from "bcryptjs"
 import jwt from "jsonwebtoken"
 import multer from "multer"

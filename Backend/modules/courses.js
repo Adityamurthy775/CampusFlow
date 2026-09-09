@@ -1,12 +1,12 @@
 import mongoose, { Schema,Types,model, trusted } from "mongoose";
  const coursesschema=new Schema({
-  collegeingo:{
+  collegeinfo:{
     type:Types.ObjectId,
     ref:"college",
     required:true
   },
   deptinfo:{
-    type:mongoose.Schema.types.ObjectId,
+    type:mongoose.Schema.Types.ObjectId,
     ref:"dept",
     required:true
   },
@@ -15,7 +15,7 @@ import mongoose, { Schema,Types,model, trusted } from "mongoose";
     required:true
   },
   code:{
-    types:String,
+    type:String,
     required:true
   },
   credits:{
@@ -23,7 +23,7 @@ import mongoose, { Schema,Types,model, trusted } from "mongoose";
     required:true
   },
   duration:{
-    type:Number,
+    type:String,
     required:true
   },
   descp:{

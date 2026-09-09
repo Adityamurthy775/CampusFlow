@@ -1,5 +1,5 @@
 import exp from "express"
-import { facultymodel } from "../Models/faculty.js"
+import { facultymodel } from "../modules/faculty.js"
 
 export const facultyapp=exp.Router();
 
@@ -25,4 +25,20 @@ facultyapp.get("/info/:id",async(req,res)=>{
     return res.status(404).json({message:"faculty not found"})
   }
   res.status(201).json({message:"Faculty info",payload:result})
+})
+
+//update the faculty info
+facultyapp.patch("/update/:id",async(req,res)=>{
+  //get the faculty data and the id from the req
+  const updateddata=req.body;
+  const id=req.params.id;
+  //find the faculty by id and update and then send response
+  const result =await facultymodel.findByIdAndUpdate(id,
+    {$set:{...updateddata}},
+    {returnDocument:"after"}
+  )
+  if(!result){
+    return res.status(404).json({message:"faculty not found"})
+  }
+  res.status(201).json({message:"Faculty data updated",payload:result})
 })

@@ -1,11 +1,6 @@
 import { Schema,Types,model } from "mongoose";
  const assignmentschema=new Schema({
-  departinfo:{
-    type:Types.ObjectId,
-    ref:"dept",
-    required:true
-  },
-  subject:{
+  subjectinfo:{
     type:Types.ObjectId,
     ref:"subject",
     required:true

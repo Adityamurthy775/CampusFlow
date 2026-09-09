@@ -36,10 +36,6 @@ const subjectschema=new Schema({
   credits:{
     type:Number,
     required:true
-  },
-  session:{
-    type:String,
-    required:true
   }
 },{versionKey:false})
 
