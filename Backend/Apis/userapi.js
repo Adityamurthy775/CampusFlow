@@ -11,12 +11,18 @@ export const  userapp=exp.Router();
 // JWT secret key (use env variable in production)
 const jwtSecret = process.env.JWT_SECRET || "campusflow_super_secret_key_2026";
 
+const isProduction = process.env.NODE_ENV === "production" || process.env.COOKIE_SECURE === "true" || Boolean(process.env.RENDER) || (process.env.CLIENT_ORIGIN && process.env.CLIENT_ORIGIN.includes("https://"));
+
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.COOKIE_SECURE === "true",
-  sameSite: process.env.COOKIE_SAME_SITE || "lax",
+  secure: process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === "true" : isProduction,
+  sameSite: process.env.COOKIE_SAME_SITE || (isProduction ? "none" : "lax"),
   maxAge: 24 * 60 * 60 * 1000
 };
+
+if (cookieOptions.sameSite === "none") {
+  cookieOptions.secure = true;
+}
 
 export function registrationConflict(fields=[]){
   const uniqueFields=[...new Set(fields.map(field=>field==="studentid"?"id":field))];
@@ -111,7 +117,7 @@ userapp.post("/login",async(req,res)=>{
   //remove password from user document
   const userData=user.toObject();
   delete userData.password;
-  res.status(200).json({message:"Login successful",payload:userData})
+  res.status(200).json({message:"Login successful",payload:userData,token})
 
 })
 

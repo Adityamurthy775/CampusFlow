@@ -3,11 +3,17 @@ export const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:4
 async function request(path, options = {}) {
   let response;
   const formData = options.body instanceof FormData;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const headers = {
+    ...(formData ? {} : { "Content-Type": "application/json" }),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       credentials: "include",
       ...options,
-      headers: formData ? options.headers : { "Content-Type": "application/json", ...options.headers },
+      headers,
     });
   } catch {
     throw new Error(`CampusFlow API is unavailable at ${API_BASE_URL}. Start the backend with "npm start" from the Backend folder.`);
@@ -24,7 +30,9 @@ async function request(path, options = {}) {
 }
 
 async function download(path, filename) {
-  const response = await fetch(`${API_BASE_URL}${path}`, { credentials: "include" });
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const response = await fetch(`${API_BASE_URL}${path}`, { credentials: "include", headers });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.message || "Download failed");
@@ -41,7 +49,7 @@ export const api = {
   get: (path) => request(path),
   post: (path, data) => request(path, { method: "POST", body: JSON.stringify(data) }),
   patch: (path, data) => request(path, { method: "PATCH", body: JSON.stringify(data) }),
-  delete: (path) => request(path, { method: "DELETE" }),
+  delete: (path) => request(path),
   upload: (path, data, method = "POST") => request(path, { method, body: data }),
   download,
 };

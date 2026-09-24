@@ -1,4 +1,5 @@
 Backend/node_modules/
+Frontend/node_modules/
 Frontend/frontend/node_modules/
 
 Backend/uploads/
@@ -6,4 +7,8 @@ Backend/uploads/
 .env
 .env.*
 
+Frontend/dist/
 Frontend/frontend/dist/
+
+powershell.bat
+**/powershell.bat

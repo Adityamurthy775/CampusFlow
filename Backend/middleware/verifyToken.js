@@ -7,22 +7,24 @@ config();
 
 export const ALL_ROLES = ["admin", "teacher", "student", "hod", "placement-office"];
 
+const extractToken = (req) => {
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  return req.cookies?.token || bearerToken;
+};
+
 /**
  * Verify Token Middleware
- * Reads JWT token from HTTP-only cookie and validates it against the secret key.
+ * Reads JWT token from HTTP-only cookie or Authorization header and validates it.
  * Then checks if the decoded user's role is in the allowed roles list.
  *
  * @param {...string} allowedRoles - List of roles allowed to access the route
  * @returns {function} Express middleware
- *
- * Usage: app.use('/admin-api', verifyToken("ADMIN"), adminApp)
- *        Or on individual routes: router.get('/', verifyToken("USER"), handler)
  */
 export const verifyToken = (...allowedRoles) => {
   return async (req, res, next) => {
     try {
-      // Get token from httpOnly cookie (set by login endpoint)
-      const token = req.cookies?.token;
+      const token = extractToken(req);
 
       // If no token present, user is not logged in
       if (!token) {
@@ -36,7 +38,6 @@ export const verifyToken = (...allowedRoles) => {
       const currentUser = await usermodel.findById(decodedToken.userId);
       if (!currentUser || currentUser.isActive === false) {
         return res.status(401).json({ message: "Account is deactivated. Please contact administrator" });
-
       }
 
       // Check if the user's role is in the allowed roles for this route
@@ -61,25 +62,18 @@ export const verifyToken = (...allowedRoles) => {
 /**
  * Optional Auth Middleware
  * Like verifyToken, but does NOT block unauthenticated requests.
- * If a valid token exists, adds user info to req; otherwise continues without.
- * Useful for routes that show different views for logged-in vs anonymous users.
- *
- * @param {...string} allowedRoles - Roles that can access the data when authenticated
- * @returns {function} Express middleware
  */
 export const optionalAuth = (...allowedRoles) => {
   return (req, res, next) => {
     try {
-      const token = req.cookies?.token;
+      const token = extractToken(req);
       if (!token) return next();
 
       const decodedToken = verify(token, process.env.JWT_SECRET || "campusflow_super_secret_key_2026");
       if (!allowedRoles.includes(decodedToken.role)) return next();
 
       req.user = decodedToken;
-
       req.userId = decodedToken.userId;
-
       req.role = decodedToken.role;
     } catch (err) {
       // ignore invalid tokens
@@ -90,10 +84,9 @@ export const optionalAuth = (...allowedRoles) => {
 
 /**
  * Get User ID from request (helper utility)
- * Returns the userId from the decoded JWT token in the request
  */
 export const getTokenUserId = (req) => {
-  const token = req.cookies?.token;
+  const token = extractToken(req);
   if (!token) return null;
   try {
     const decoded = verify(token, process.env.JWT_SECRET || "campusflow_super_secret_key_2026");
