@@ -51,8 +51,7 @@ Open `http://localhost:5173`.
 - Liveness: `GET http://127.0.0.1:4000/`
 - Readiness: `GET http://127.0.0.1:4000/health` (`503` while MongoDB is unavailable)
 
-Component-specific setup and design notes are available in the [backend README](Backend/README.md) and [frontend README](Frontend/README.md).
-
+This root `README.md` is the canonical CampusFlow guide. It consolidates project-wide setup, backend architecture and APIs, frontend structure and routes, authentication, uploads, commands, and operational notes.
 
 ---
 
@@ -90,7 +89,7 @@ The detailed reference flowcharts below provide endpoint-level behavior.
 6. [Technology Stack](#technology-stack)
 7. [Backend — Modules & APIs](#backend--modules--apis)
 8. [Frontend — Structure & Working](#frontend--structure--working)
-9. [Setup & Installation](#setup--installation)
+9. [Setup, Configuration & Commands](#setup-configuration--commands)
 10. [API Endpoint Reference](#api-endpoint-reference)
 11. [Rate Limiting](#rate-limiting)
 12. [Key Relationships Between Models](#key-relationships-between-models)
@@ -220,30 +219,31 @@ sequenceDiagram
     participant Backend as Backend (Express)
     participant Database as MongoDB
 
-    User->>Frontend: Fill registration form (name, email, password, role)
+    User->>Frontend: Fill student registration form (name, email, campus ID, password, phone)
     Frontend->>Backend: POST /user-api/register
-    Backend->>Database: Check if user already exists (find by email)
-    alt User already exists
+    Backend->>Database: Check duplicate email and campus ID
+    alt Email or campus ID already exists
         Database-->>Backend: Return existing user record
-        Backend-->>Frontend: 409 Conflict (Email already registered)
-    else User not found
+        Backend-->>Frontend: 409 Conflict (Email or Campus ID already registered)
+    else Account is available
         Backend->>Backend: Hash password with bcryptjs (12 salt rounds)
-        Backend->>Database: Save new user document
+        Backend->>Database: Save new student user document
         Database-->>Backend: Return saved user object
         Backend-->>Frontend: 201 Created (id, email, role)
     end
 
-    User->>Frontend: Enter email & password to login
+    User->>Frontend: Enter email and password to log in
     Frontend->>Backend: POST /user-api/login
-    Backend->>Database: Find user by email (select +password)
+    Backend->>Database: Find active user by email (select +password)
     Database-->>Backend: Return user record with password hash
     Backend->>Backend: Compare password using bcryptjs.compare()
     alt Valid credentials
-        Backend->>Backend: Generate JWT token (7-day expiry)
+        Backend->>Backend: Generate one-day JWT and set HTTP-only cookie
         Backend->>Backend: Strip password from response payload
-        Backend-->>Frontend: 200 OK (JWT token + user payload)
+        Backend-->>Frontend: 200 OK (JWT token + cookie + user payload)
+        Frontend->>Frontend: Store bearer token in localStorage
     else Invalid credentials
-        Backend-->>Frontend: 401 Unauthorized (Invalid email or password)
+        Backend-->>Frontend: 401 Unauthorized (Invalid credentials)
     end
 
     Note over Frontend,Backend: API Rate Limit: 300 requests per minute
@@ -379,30 +379,29 @@ sequenceDiagram
 
     User->>Frontend: Submit login credentials
     Frontend->>Backend: POST /user-api/login {email, password}
-    Backend->>Database: Find user by email
+    Backend->>Database: Find active user by email
     Database-->>Backend: Return user record (with password hash)
     Backend->>Backend: Compare password using bcryptjs.compare()
     alt Valid credentials
-        Backend->>Backend: Generate JWT token (7-day expiry)
-        Backend->>Backend: Attach token to response
-        Backend-->>Frontend: 200 OK (JWT token + user payload)
-        Frontend->>Frontend: Store token in localStorage/sessionStorage
+        Backend->>Backend: Generate one-day JWT
+        Backend->>Backend: Set HTTP-only token cookie
+        Backend-->>Frontend: 200 OK (JWT token + cookie + user payload)
+        Frontend->>Frontend: Store bearer token in localStorage
     else Invalid credentials
         Backend-->>Frontend: 401 Unauthorized
     end
 
     User->>Frontend: Navigate to protected route
-    Frontend->>Frontend: Retrieve JWT from storage
-    Frontend->>Backend: GET /student-api/info/:id (Authorization: Bearer token)
-    Backend->>Backend: Verify JWT using jwt.verify()
-    alt Token valid
+    Frontend->>Backend: GET /student-api/info/:id (cookie + Authorization: Bearer token)
+    Backend->>Backend: Read cookie or bearer token; verify JWT, active user, and role
+    alt Token and user valid
         Backend->>Database: Query with model.populate()
         Database-->>Backend: Return requested data
         Backend-->>Frontend: 200 OK (requested data)
         Frontend->>Frontend: Render protected content
-    else Token expired or invalid
-        Backend-->>Frontend: 401 Unauthorized (Token expired)
-        Frontend->>Frontend: Redirect to login page
+    else Token expired, invalid, or account inactive
+        Backend-->>Frontend: 401 Unauthorized
+        Frontend->>Frontend: Clear token and redirect to login
     end
 
     Note over Frontend,Backend: Rate Limit: 300 requests per minute
@@ -595,7 +594,7 @@ CampusFlow/
 - **Port**: `PORT` or `4000` by default
 - **Database**: `MONGO_DIRECT_URI`, then `MONGO_URI`, then `mongodb://localhost:27017/campusflow`
 - **Middleware**: cookie parsing, JSON parsing, origin checks, in-memory rate limiting, and database readiness checks
-- **Authentication**: one-day JWT in an HTTP-only cookie, with route-level role authorization
+- **Authentication**: one-day JWT delivered in an HTTP-only cookie and response body; routes also accept `Authorization: Bearer <token>`
 - **Error Handling**: Built-in middleware for `ValidationError`, `CastError`, duplicate keys, and 404s
 - **Route Prefixes**: Each module is mounted under a namespace
 
@@ -612,7 +611,20 @@ app.use("/timetable-api", timetableapp)
 app.use("/assignment-api", assignmentapp)
 app.use("/submission-api", submissionapp)
 app.use("/attendance-api", attendanceapp)
+app.use("/announcement-api", announcementapp)
+app.use("/event-api", eventapp)
+app.use("/company-api", companyapp)
+app.use("/drive-api", driveapp)
+app.use("/request-api", requestapp)
 ```
+
+### Authentication, authorization, data, and uploads
+
+- Public registration creates student accounts only. Passwords are hashed with bcryptjs using 12 rounds.
+- Login sets the HTTP-only `token` cookie and returns the same JWT in the response body. `verifyToken(...roles)` accepts either that cookie or a bearer token, reloads the active user, and checks the current database role.
+- Role checks are enforced inside the routers. Review each route's authentication, ownership, and management checks before changing access rules.
+- Mongoose models represent users and the related college, academic, attendance, activity, request, and placement collections.
+- `middleware/upload.js` limits each upload to one file up to 10 MB and allows PDF, Word, text, RTF, PNG, JPEG, WebP, Excel, CSV, and ZIP files.
 
 ### Module Details
 
@@ -681,22 +693,86 @@ app.use("/attendance-api", attendanceapp)
 
 ## 🌐 Frontend — Structure & Working
 
+The React single-page application sends authenticated requests through `src/lib/api.js` to the Express API. The backend applies middleware and role checks, then reads or writes MongoDB through Mongoose models.
+
+### Routes and role-aware state
+
+CampusFlow uses a lightweight hash router so it can be hosted without server-side route rewrites:
+
+- `#/` — landing page
+- `#/login` — login
+- `#/signup` — student registration
+- `#/dashboard` — authenticated dashboard
+- `#/dashboard/<feature>` — dashboard feature views
+
+`AuthProvider` calls `/user-api/check-auth` on startup. Login stores the returned token in `localStorage`; the API wrapper also sends `credentials: "include"`, so the backend's HTTP-only cookie is sent automatically. Authenticated dashboard routes redirect to login when no active user is found. Student, faculty, HOD, placement-office, and admin dashboards expose role-specific feature menus while sharing the same page shell and API layer.
+
+### Key files
+
 - **`src/App.jsx`** composes the intro preloader, authentication provider, hash router, public pages, and role-protected dashboard.
-- **Routes** use hash paths: `#/`, `#/login`, `#/signup`, `#/dashboard`, and `#/dashboard/<feature>`.
-- **`src/lib/auth.jsx`** restores the session through `/user-api/check-auth` and exposes login, registration, logout, and refresh operations.
-- **`src/lib/api.js`** centralizes the API origin, credentialed JSON requests, `FormData` uploads, downloads, and structured errors.
+- **`src/lib/auth.jsx`** exposes login, registration, logout, and session refresh operations.
+- **`src/lib/api.js`** centralizes `VITE_API_URL`, bearer/cookie requests, JSON and `FormData` bodies, authenticated downloads, and structured API errors.
 - **`src/pages/dashboard.jsx`** provides the role-aware application shell; **`dashboardFeatures.jsx`** contains the feature workspaces.
 - **`src/components/` and `src/pages/`** contain the landing experience, authentication forms, dashboard, and reusable animated UI sections.
 - **`src/index.css`, `src/common.js`, and component CSS files** provide global styles, design tokens, and responsive layouts.
 - **`vite.config.js`** enables React, Tailwind CSS 4, and the `@` alias to `src`.
 
-See the [frontend README](Frontend/README.md) for routes, structure, and commands.
-
 ---
 
-## 🚀 Setup & Installation
+## 🚀 Setup, Configuration & Commands
 
-For current commands and environment variables, use the [backend README](Backend/README.md) and [frontend README](Frontend/README.md). The quick start at the top of this guide covers the complete startup sequence.
+The quick start at the top of this guide covers the complete local startup sequence. Use the following details to configure and operate each package.
+
+### Backend environment
+
+Create `Backend/.env` as needed:
+
+```env
+PORT=4000
+MONGO_URI=mongodb://127.0.0.1:27017/campusflow
+MONGO_DIRECT_URI=
+JWT_SECRET=replace-with-a-long-random-secret
+CLIENT_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
+COOKIE_SECURE=false
+COOKIE_SAME_SITE=lax
+```
+
+`MONGO_DIRECT_URI` is optional and takes precedence over `MONGO_URI`; it is useful for a direct replica-set connection when an Atlas SRV hostname is unavailable. `CLIENT_ORIGIN` is a comma-separated allowlist. For cross-site HTTPS deployment, use secure cookies with an appropriate same-site policy, for example `COOKIE_SECURE=true` and `COOKIE_SAME_SITE=none`.
+
+The server starts on `PORT` or `4000` and retries MongoDB every 10 seconds after a connection failure. While the database is unavailable, `GET /` still reports API liveness, `GET /health` returns `503`, and data routes return `503 DATABASE_UNAVAILABLE`.
+
+### Backend commands
+
+Run from `Backend/`:
+
+| Command | Purpose |
+|---|---|
+| `npm start` | Run the server with Node |
+| `npm run dev` | Run with Node's watch mode |
+| `npm run seed:demo` | Seed the demo user |
+| `npm run seed:academic` | Seed academic data idempotently |
+| `npm run seed:content` | Seed supporting demo content |
+| `npm run seed:all` | Run all seed scripts in order |
+| `npm run verify:data` | Verify seeded records and relationships |
+
+`npm test` is not currently configured as a passing project check.
+
+### Frontend environment and commands
+
+`Frontend/.env.local` is optional; the API wrapper defaults to `http://127.0.0.1:4000`. Set `VITE_API_URL` to override it and restart Vite after changing environment variables. Keep the frontend origin included in the backend's `CLIENT_ORIGIN` value.
+
+Run from `Frontend/`:
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Create a production build in `dist/` |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run ESLint |
+
+### Manual API requests
+
+`Backend/req/*.http` contains request examples for VS Code REST Client.
 
 ---
 
@@ -706,9 +782,9 @@ For current commands and environment variables, use the [backend README](Backend
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/register` | Register a student account with a hashed password |
-| POST | `/login` | Authenticate with email/password and set the JWT cookie |
-| GET | `/logout` | Clear the authentication cookie |
-| GET | `/check-auth` | Return the active user for a valid JWT cookie |
+| POST | `/login` | Authenticate and set the JWT cookie; also return a bearer token |
+| GET | `/logout` | Clear the authentication cookie; clients also clear their stored bearer token |
+| GET | `/check-auth` | Return the active user for a valid cookie or bearer token |
 | PATCH | `/update/:id` | Update permitted user fields |
 | PATCH | `/delete/:id` | Soft delete (set `isActive: false`) |
 | POST | `/forgot` | Return `410`; direct password reset is disabled |
@@ -932,7 +1008,7 @@ Company
 ## 📝 Notes
 
 - All passwords are hashed with **bcryptjs** before storing in MongoDB.
-- **JWT tokens** expire in **1 day** and are sent in an HTTP-only cookie for authenticated routes.
+- **JWT tokens** expire in **1 day**. Login sets an HTTP-only cookie and returns a bearer token; protected routes accept either credential.
 - Some user/profile resources use soft-delete patterns (`isActive: false`), while workflow records such as submissions and requests may be hard-deleted.
 - **Rate limiting** is enforced at **300 requests per minute per IP** using a custom in-memory middleware.
 - **Error middleware** handles Mongoose validation errors, cast errors, and duplicate keys gracefully.
