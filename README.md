@@ -284,16 +284,15 @@ flowchart TB
     StartAttendance[Add Attendance Record] --> ValidateAttendance{Validate Fields:<br>studentinfo, subjectinfo, date, status}
     ValidateAttendance -->|All fields valid| CreateAttendance[Create attendance document]
     CreateAttendance --> SaveAttendance[Save to MongoDB - Attendance collection]
-    SaveAttendance --> ReturnCreated[Return 201 Created (attendance _id)]
+    SaveAttendance --> ReturnCreated["Return 201 Created (attendance _id)"]
 
-    ViewAttendanceBtn[View All Attendance Records] --> GetAttendanceEndpoint[GET /attendance-api/all]
-    GetAttendanceEndpoint --> PopulateAttendance[Populate studentinfo + subjectinfo references]
+    ViewAttendanceBtn[View All Attendance Records] --> GetAttendanceEndpoint["GET /attendance-api/all"]
     PopulateAttendance --> ReturnAllAttendance[Return all attendance records as JSON]
 
-    UpdateAttendanceBtn[Update Attendance Status] --> UpdateAttendanceEndpoint[PATCH /attendance-api/update/:id]
-    UpdateAttendanceEndpoint --> SetAttendanceStatus[Set status: 'present' | 'absent' | 'late']
+    UpdateAttendanceBtn[Update Attendance Status] --> UpdateAttendanceEndpoint["PATCH /attendance-api/update/:id"]
+    UpdateAttendanceEndpoint --> SetAttendanceStatus["Set status: present | absent | late"]
     SetAttendanceStatus --> SaveUpdatedAttendance[Save updated record to MongoDB]
-    SaveUpdatedAttendance --> ReturnUpdatedAttendance[Return 200 OK (updated attendance)]
+    SaveUpdatedAttendance --> ReturnUpdatedAttendance["Return 200 OK (updated attendance)"]
 
     ValidateAttendance -->|Invalid fields| ReturnError[Return 400 Bad Request]
 
@@ -301,8 +300,6 @@ flowchart TB
     style ReturnCreated fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style ReturnAllAttendance fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style ReturnUpdatedAttendance fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
-
-    Note over StartAttendance,ReturnUpdatedAttendance: Rate Limit: 300 requests per minute
 ```
 
 ### 5. Placement Drive Flow
@@ -318,14 +315,12 @@ flowchart LR
     StudentsApply --> StageProgress{Stage Evaluation}
     StageProgress -->|Pass| NextStage[Advance to Next Stage]
     StageProgress -->|Fail| Rejected[Student Marked as Rejected]
-    NextStage -->|Pass All Stages| Placed[Student Placed ✅]
+    NextStage -->|Pass All Stages| Placed["Student Placed &#9989;"]
 
     style CompanyRegistered fill:#646cff,stroke:#333,stroke-width:2px,color:#fff
     style CollegeValidated fill:#ffa500,stroke:#333,stroke-width:2px,color:#000
     style CreateDrive fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style Placed fill:#2ca02c,stroke:#333,stroke-width:2px,color:#fff
-
-    Note over CompanyRegistered,Placed: Rate Limit: 300 requests per minute
 ```
 
 ### 6. Subject & Course Management Flow
@@ -513,7 +508,7 @@ CampusFlow/
 │   │
 │   ├── 📂 middleware/                   # Authentication, rate limiting, and uploads
 │   │   ├── 📄 rateLimiter.js            # Rate limiting (300 requests/minute per IP)
-│   │   ├── 📄 verifyToken.js            # JWT cookie and role verification
+│   │   ├── 📄 verifyToken.js            # JWT cookie/bearer and role verification
 │   │   └── 📄 upload.js                 # Multer limits and attachment helpers
 │   │
 │   ├── 📂 req/                          # HTTP request files for testing
@@ -533,7 +528,11 @@ CampusFlow/
 │   │   ├── 📄 drivereq.http
 │   │   └── 📄 requestreq.http
 │
-│   ├── 📄 README.md                    # Backend-specific guide
+│   │   ├── 📂 uploads/                     # Runtime upload directory
+│   │   ├── 📄 seed-demo-user.js            # Demo user seed
+│   │   ├── 📄 seed-academic-data.js        # Academic seed
+│   │   ├── 📄 seed-demo-content.js         # Supporting demo content seed
+│   │   └── 📄 verify-seed-data.js          # Seed verification
 │
 ├── 📂 Frontend/                         # React + Vite frontend application
 │   ├── 📄 package.json                  # Frontend dependencies
