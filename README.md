@@ -2,17 +2,71 @@
 
 **CampusFlow** is a full-stack campus management platform built with **React + Vite** (frontend) and **Express + MongoDB** (backend). It provides an integrated system for managing students, faculty, courses, departments, assignments, attendance, placements, events, and more.
 
+## 🚀 Quick start
+
+### Prerequisites
+
+- Node.js 20.19+ or 22.12+ (required by the current Vite toolchain)
+- npm
+- MongoDB running locally, or a MongoDB connection string
+
+### 1. Start the backend
+
+```bash
+cd Backend
+npm install
+npm run dev
+```
+
+The API starts at `http://127.0.0.1:4000`. It remains available while MongoDB reconnects; data routes return `503` until the database is ready.
+
+### 2. Seed optional demo data
+
+```bash
+cd Backend
+npm run seed:all
+npm run verify:data
+```
+
+### 3. Start the frontend
+
+Create `Frontend/.env.local` only when you need to override the default API URL:
+
+```env
+VITE_API_URL=http://127.0.0.1:4000
+```
+
+Then run:
+
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`.
+
+### Health checks
+
+- Liveness: `GET http://127.0.0.1:4000/`
+- Readiness: `GET http://127.0.0.1:4000/health` (`503` while MongoDB is unavailable)
+
+Component-specific setup and design notes are available in the [backend README](Backend/README.md) and [frontend README](Frontend/README.md).
+
+
 ---
 
 ## 🧭 Rendered system diagrams
 
-The project architecture and its most important request paths are available as self-contained, accessible HTML diagrams generated with the `diagram-design` skill:
+The diagrams below are self-contained, accessible HTML files generated from the project structure:
 
-- [CampusFlow request architecture](docs/diagrams/campusflow-architecture.html) — client, API, controllers, models, and MongoDB boundaries.
+- [Backend request architecture](docs/diagrams/campusflow-architecture.html) — Express, middleware, controllers, Mongoose, and MongoDB boundaries.
 - [Browser request flow](docs/diagrams/campusflow-request-flow.html) — routing, JWT authentication, validation, controller execution, and JSON responses.
 - [JWT authentication sequence](docs/diagrams/campusflow-authentication-sequence.html) — login, user lookup, password verification, token issuance, and failure handling.
 
-The detailed reference flowcharts below remain useful for endpoint-level behavior; these rendered diagrams provide the higher-level orientation first.
+[![CampusFlow backend request architecture](docs/diagrams/campusflow-architecture.png)](docs/diagrams/campusflow-architecture.html)
+
+The detailed reference flowcharts below provide endpoint-level behavior.
 
 ---
 
@@ -79,7 +133,7 @@ The detailed reference flowcharts below remain useful for endpoint-level behavio
 │                           DATABASE LAYER                                │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ ┌─────────────────────────────────────────────────────────────────────┐ │
-│ │                           MongoDB Atlas                            │ │
+│ │                           MongoDB                            │ │
 │ │ ┌───────────────────────────────────────────────────────────────┐   │ │
 │ │ │                                                               │   │ │
 │ │ │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌─────────┐  │   │ │
@@ -104,7 +158,7 @@ graph LR
     Vite -->|REST API Call| Express[Express Server]
     Express -->|Route Handler| Routes[API Routes]
     Routes -->|Mongoose Query| Models[Mongoose Models]
-    Models -->|MongoDB Query| DB[(MongoDB Atlas)]
+    Models -->|MongoDB Query| DB[(MongoDB)]
     DB -->|Data Response| Models
     Models -->|JSON Response| Routes
     Routes -->|JSON Response| Express
@@ -122,10 +176,10 @@ graph LR
 | **Layer** | **Technology** | **Responsibilities** |
 |-----------|----------------|-----------------------|
 | **Presentation** | React + Vite | Renders UI components, handles client-side state |
-| **API Gateway** | Express.js | Handles HTTP requests, CORS, static file serving, **Rate limiting (1 req/min)** |
-| **Business Logic** | Controllers & Routes | Processes business rules, validation, data transformation |
-| **Data Access** | Mongoose ODM | Object modeling, schema validation, query execution |
-| **Database** | MongoDB Atlas | Data persistence, indexing, aggregation |
+| **API Gateway** | Express.js | Handles HTTP requests, origin checks, cookies, readiness, and rate limiting |
+| **Business Logic** | Controllers & Routes | Processes validation, authorization, workflow, and data transformation |
+| **Data Access** | Mongoose ODM | Object modeling, schema validation, population, and query execution |
+| **Database** | MongoDB | Data persistence, indexing, and aggregation (local or Atlas) |
 
 ---
 
@@ -139,7 +193,7 @@ flowchart LR
     ViteDev -->|REST API Call| ExpressServer[Express Backend Server]
     ExpressServer -->|Route Match| RouteHandler[Route Handler]
     RouteHandler -->|Mongoose Query| MongooseModel[Model Method]
-    MongooseModel -->|MongoDB Query| MongoDBAtlas[(MongoDB Atlas)]
+    MongooseModel -->|MongoDB Query| MongoDBAtlas[(MongoDB)]
     MongoDBAtlas -->|Data Response| MongooseModel
     MongooseModel -->|Serialized JSON| RouteHandler
     RouteHandler -->|JSON Response| ExpressServer
@@ -161,7 +215,7 @@ sequenceDiagram
     participant User as User
     participant Frontend as Frontend (React)
     participant Backend as Backend (Express)
-    participant Database as MongoDB Atlas
+    participant Database as MongoDB
 
     User->>Frontend: Fill registration form (name, email, password, role)
     Frontend->>Backend: POST /user-api/register
@@ -189,7 +243,7 @@ sequenceDiagram
         Backend-->>Frontend: 401 Unauthorized (Invalid email or password)
     end
 
-    Note over Frontend,Backend: API Rate Limit: 1 request per minute
+    Note over Frontend,Backend: API Rate Limit: 300 requests per minute
 ```
 
 ### 3. Assignment & Submission Flow
@@ -199,7 +253,7 @@ sequenceDiagram
     participant Teacher as Teacher (Faculty)
     participant Backend as Backend (Express)
     participant Student as Student (User)
-    participant Database as MongoDB Atlas
+    participant Database as MongoDB
 
     Teacher->>Backend: POST /assignment-api/create {title, subject, instructions, maxmarks}
     Backend->>Database: Create assignment document in Assignments collection
@@ -217,7 +271,7 @@ sequenceDiagram
     Database-->>Backend: Return assignment with all populated submissions
     Backend-->>Teacher: 200 OK (assignment details + submissions)
 
-    Note over Backend: API Rate Limit: 1 request per minute
+    Note over Backend: API Rate Limit: 300 requests per minute
 ```
 
 ### 4. Attendance Flow
@@ -226,7 +280,7 @@ sequenceDiagram
 flowchart TB
     StartAttendance[Add Attendance Record] --> ValidateAttendance{Validate Fields:<br>studentinfo, subjectinfo, date, status}
     ValidateAttendance -->|All fields valid| CreateAttendance[Create attendance document]
-    CreateAttendance --> SaveAttendance[Save to MongoDB Atlas - Attendance collection]
+    CreateAttendance --> SaveAttendance[Save to MongoDB - Attendance collection]
     SaveAttendance --> ReturnCreated[Return 201 Created (attendance _id)]
 
     ViewAttendanceBtn[View All Attendance Records] --> GetAttendanceEndpoint[GET /attendance-api/all]
@@ -245,7 +299,7 @@ flowchart TB
     style ReturnAllAttendance fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style ReturnUpdatedAttendance fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
 
-    Note over StartAttendance,ReturnUpdatedAttendance: Rate Limit: 1 request per minute
+    Note over StartAttendance,ReturnUpdatedAttendance: Rate Limit: 300 requests per minute
 ```
 
 ### 5. Placement Drive Flow
@@ -268,7 +322,7 @@ flowchart LR
     style CreateDrive fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style Placed fill:#2ca02c,stroke:#333,stroke-width:2px,color:#fff
 
-    Note over CompanyRegistered,Placed: Rate Limit: 1 request per minute
+    Note over CompanyRegistered,Placed: Rate Limit: 300 requests per minute
 ```
 
 ### 6. Subject & Course Management Flow
@@ -287,7 +341,7 @@ flowchart TD
     style CourseCreated fill:#ffa500,stroke:#333,stroke-width:2px,color:#000
     style SubjectCreated fill:#ff9900,stroke:#333,stroke-width:2px,color:#000
 
-    Note over CollegeCreated,DriveLinked: Rate Limit: 1 request per minute
+    Note over CollegeCreated,DriveLinked: Rate Limit: 300 requests per minute
 ```
 
 ### 7. Request/Leave Management Flow
@@ -308,7 +362,7 @@ stateDiagram-v2
     style Approved fill:#2ca02c,stroke:#333,stroke-width:2px,color:#fff
     style Rejected fill:#d62728,stroke:#333,stroke-width:2px,color:#fff
 
-    Note over Submitted,Escalated: Rate Limit: 1 request per minute
+    Note over Submitted,Escalated: Rate Limit: 300 requests per minute
 ```
 
 ### 8. JWT Authentication & Authorization Flow
@@ -318,7 +372,7 @@ sequenceDiagram
     participant User as User (Client)
     participant Frontend as Frontend (React)
     participant Backend as Backend (Express)
-    participant Database as MongoDB Atlas
+    participant Database as MongoDB
 
     User->>Frontend: Submit login credentials
     Frontend->>Backend: POST /user-api/login {email, password}
@@ -348,7 +402,7 @@ sequenceDiagram
         Frontend->>Frontend: Redirect to login page
     end
 
-    Note over Frontend,Backend: Rate Limit: 1 request per minute
+    Note over Frontend,Backend: Rate Limit: 300 requests per minute
 ```
 
 ### 9. Mongoose Populate & Cross-Collection Query Flow
@@ -376,7 +430,7 @@ flowchart LR
     style FindAssignment fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style FindAttendance fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
 
-    Note over GetUserRequest,PopulateTeacher: Rate Limit: 1 request per minute
+    Note over GetUserRequest,PopulateTeacher: Rate Limit: 300 requests per minute
 ```
 
 ### 10. Soft Delete & Error Handling Flow
@@ -403,7 +457,7 @@ flowchart TD
     style UpdateDB fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style ReturnSuccess fill:#2ca02c,stroke:#333,stroke-width:2px,color:#fff
 
-    Note over UserDeleteRequest,Return409: Rate Limit: 1 request per minute
+    Note over UserDeleteRequest,Return409: Rate Limit: 300 requests per minute
 ```
 
 ---
@@ -425,6 +479,8 @@ CampusFlow/
 │   │   ├── 📄 dept.js                 # Department CRUD
 │   │   ├── 📄 courses.js              # Course management CRUD
 │   │   ├── 📄 subject.js              # Subject management CRUD
+│   │   ├── 📄 room.js                 # Room directory
+│   │   ├── 📄 timetable.js            # Published timetable queries
 │   │   ├── 📄 assignment.js           # Assignment creation & management
 │   │   ├── 📄 submission.js           # Submission handling & grading
 │   │   ├── 📄 attendance.js           # Attendance recording & retrieval
@@ -442,6 +498,8 @@ CampusFlow/
 │   │   ├── 📄 department.js             # Department schema (college ref, hodid, etc.)
 │   │   ├── 📄 courses.js                # Course schema (college + dept refs, credits)
 │   │   ├── 📄 subject.js                # Subject schema (college, dept, course, teacher refs)
+│   │   ├── 📄 room.js                   # Room schema
+│   │   ├── 📄 timetable.js              # Timetable schema and period references
 │   │   ├── 📄 assignment.js             # Assignment schema (subject ref, submissions)
 │   │   ├── 📄 submission.js             # Submission schema (student ref, marks, grade)
 │   │   ├── 📄 attendance.js             # Attendance schema (subject, student, status)
@@ -451,8 +509,10 @@ CampusFlow/
 │   │   ├── 📄 drive.js                  # Placement drive schema (stages, eligibility, status)
 │   │   └── 📄 request.js                # Request schema (leave, grievance, etc.)
 │   │
-│   ├── 📂 middleware/                   # Custom middleware
-│   │   └── 📄 rateLimiter.js            # Rate limiting (1 req/min per IP)
+│   ├── 📂 middleware/                   # Authentication, rate limiting, and uploads
+│   │   ├── 📄 rateLimiter.js            # Rate limiting (300 requests/minute per IP)
+│   │   ├── 📄 verifyToken.js            # JWT cookie and role verification
+│   │   └── 📄 upload.js                 # Multer limits and attachment helpers
 │   │
 │   └── 📂 req/                          # HTTP request files for testing
 │       ├── 📄 user.http
@@ -483,16 +543,20 @@ CampusFlow/
 │   │
 │   └── 📂 src/                          # React source code
 │       ├── 📄 main.jsx                  # React entry point (StrictMode + createRoot)
-│       ├── 📄 App.jsx                   # Main App component with hero + navigation
-│       ├── 📄 App.css                   # Component-level styles
-│       ├── 📄 index.css                 # Global styles, CSS variables, theming
+│       ├── 📄 App.jsx                   # Providers, hash routes, and preloader
+│       ├── 📄 common.js                 # Design tokens and landing content
+│       ├── 📄 index.css                 # Global styles
+│       │
+│       ├── 📂 components/               # Landing sections and reusable animated UI
+│       ├── 📂 lib/                      # API, auth, hash router, and UI store
+│       ├── 📂 pages/                    # Landing, auth, and role-aware dashboard
 │       │
 │       └── 📂 assets/                   # Static image assets
 │           ├── 🖼️ hero.png               # Hero section background image
 │           ├── 🖼️ react.svg              # React logo
 │           └── 🖼️ vite.svg               # Vite logo
 │
-└── 📄 README.md                         # This file
+│   └── 📄 README.md                         # This file
 ```
 ---
 
@@ -503,6 +567,8 @@ CampusFlow/
 |---|---|---|
 | **React** | ^19.2.8 | UI library |
 | **Vite** | ^8.2.2 | Build tool & dev server |
+| **Tailwind CSS** | ^4.3.3 | Utility-first styling through the Vite plugin |
+| **Motion / GSAP / Three.js** | Current package versions | Interface and introduction animation |
 | **ESLint** | ^10.9.0 | Code linting |
 
 ### Backend
@@ -513,7 +579,7 @@ CampusFlow/
 | **bcryptjs** | ^3.0.3 | Password hashing |
 | **jsonwebtoken** | ^9.0.3 | Authentication tokens |
 | **multer** | ^2.3.0 | File upload handling |
-| **Nodemon** | ^3.1.14 | Dev server auto-restart |
+| **Node.js watch mode** | Built in | Restarts `server.js` during `npm run dev` |
 
 ---
 
@@ -521,9 +587,10 @@ CampusFlow/
 
 ### Server Configuration (`server.js`)
 
-- **Port**: `4000`
-- **Database**: `mongodb://localhost:27017/campusflow`
-- **Middleware**: `express.json()` for JSON parsing
+- **Port**: `PORT` or `4000` by default
+- **Database**: `MONGO_DIRECT_URI`, then `MONGO_URI`, then `mongodb://localhost:27017/campusflow`
+- **Middleware**: cookie parsing, JSON parsing, origin checks, in-memory rate limiting, and database readiness checks
+- **Authentication**: one-day JWT in an HTTP-only cookie, with route-level role authorization
 - **Error Handling**: Built-in middleware for `ValidationError`, `CastError`, duplicate keys, and 404s
 - **Route Prefixes**: Each module is mounted under a namespace
 
@@ -535,6 +602,8 @@ app.use("/college-api", collegeapp)
 app.use("/dept-api", deptapp)
 app.use("/course-api", courseapp)
 app.use("/subject-api", subjectapp)
+app.use("/room-api", roomapp)
+app.use("/timetable-api", timetableapp)
 app.use("/assignment-api", assignmentapp)
 app.use("/submission-api", submissionapp)
 app.use("/attendance-api", attendanceapp)
@@ -546,7 +615,7 @@ app.use("/attendance-api", attendanceapp)
 - **Fields**: `role` (enum: teacher, student, placement-office, hod), `username`, `email`, `id`, `password`, `phno`, `department`, `branch`, `avatar`, `isActive`
 - **Authentication**: Password hashing with bcryptjs (12 rounds), JWT tokens with 1-day expiry
 - **Soft Delete**: Sets `isActive: false` instead of deleting records
-- **Forgot Password**: Reset password via email
+- **Password Recovery**: Direct reset via `/forgot` is disabled; use authenticated password change or an administrator-managed reset
 - **Change Password**: Verify current password before changing
 
 #### 🎓 Student Module (`modules/studentmodule.js`)
@@ -607,60 +676,22 @@ app.use("/attendance-api", attendanceapp)
 
 ## 🌐 Frontend — Structure & Working
 
-### Entry Point (`src/main.jsx`)
-- Wraps `<App />` in React's `<StrictMode>`
-- Uses `createRoot` to render into `#root` div
+- **`src/App.jsx`** composes the intro preloader, authentication provider, hash router, public pages, and role-protected dashboard.
+- **Routes** use hash paths: `#/`, `#/login`, `#/signup`, `#/dashboard`, and `#/dashboard/<feature>`.
+- **`src/lib/auth.jsx`** restores the session through `/user-api/check-auth` and exposes login, registration, logout, and refresh operations.
+- **`src/lib/api.js`** centralizes the API origin, credentialed JSON requests, `FormData` uploads, downloads, and structured errors.
+- **`src/pages/dashboard.jsx`** provides the role-aware application shell; **`dashboardFeatures.jsx`** contains the feature workspaces.
+- **`src/components/` and `src/pages/`** contain the landing experience, authentication forms, dashboard, and reusable animated UI sections.
+- **`src/index.css`, `src/common.js`, and component CSS files** provide global styles, design tokens, and responsive layouts.
+- **`vite.config.js`** enables React, Tailwind CSS 4, and the `@` alias to `src`.
 
-### Main Component (`src/App.jsx`)
-- **State**: `count` (useState hook) — interactive counter demo
-- **Sections**:
-  - `#center` — Hero section with logo overlays (base React + Vite logos), title, HMR instruction, counter button
-  - `#next-steps` — Two-column layout with **Documentation** (Vite, React links) and **Connect with us** (GitHub, Discord, X.com, Bluesky links)
-- **Assets**: `hero.png` (background), `react.svg`, `vite.svg` (logo overlays)
+See the [frontend README](Frontend/README.md) for routes, structure, and commands.
 
-### Styling
-- **`src/index.css`** — Global CSS custom properties (`:root`) with light/dark mode support via `@media (prefers-color-scheme: dark)`. Defines font stack, color palette, spacing, and responsive breakpoints.
-- **`src/App.css`** — Component-specific styles for the counter button, hero layout, documentation/social sections, and decorative `.ticks` elements.
-
-### Vite Configuration (`vite.config.js`)
-```javascript
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-export default defineConfig({ plugins: [react()] })
-```
 ---
 
 ## 🚀 Setup & Installation
 
-### Prerequisites
-- **Node.js** v18+
-- **MongoDB** (local or cloud URI)
-- **npm** or **yarn**
-
-### 1. Clone & Navigate
-```bash
-cd CampusFlow
-```
-
-### 2. Backend Setup
-```bash
-cd Backend
-npm install
-# Set MONGODB_URI environment variable (optional, defaults to localhost)
-# Default: mongodb://localhost:27017/campusflow
-npm run dev    # Starts server on port 4000 with nodemon
-```
-
-### 3. Frontend Setup
-```bash
-cd Frontend
-npm install
-npm run dev    # Starts Vite dev server on port 5173
-```
-
-### 4. Verify
-- Backend health check: `GET http://localhost:4000/`
-- Frontend: `http://localhost:5173`
+For current commands and environment variables, use the [backend README](Backend/README.md) and [frontend README](Frontend/README.md). The quick start at the top of this guide covers the complete startup sequence.
 
 ---
 
@@ -669,17 +700,20 @@ npm run dev    # Starts Vite dev server on port 5173
 ### User API (`/user-api`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/register` | Register new user with hashed password |
-| POST | `/login` | Login with email/password, returns JWT |
-| PATCH | `/update/:id` | Update user details |
-| PATCH | `/delete/:id` | Soft delete (set isActive: false) |
-| POST | `/forgot` | Reset password by email |
-| POST | `/change-password/:id` | Change password with current password verification |
-| GET | `/all` | Get all active users (password excluded) |
+| POST | `/register` | Register a student account with a hashed password |
+| POST | `/login` | Authenticate with email/password and set the JWT cookie |
+| GET | `/logout` | Clear the authentication cookie |
+| GET | `/check-auth` | Return the active user for a valid JWT cookie |
+| PATCH | `/update/:id` | Update permitted user fields |
+| PATCH | `/delete/:id` | Soft delete (set `isActive: false`) |
+| POST | `/forgot` | Return `410`; direct password reset is disabled |
+| POST | `/change-password/:id` | Change the current user's password after verification |
+| GET | `/all` | Get role-scoped active users (password excluded) |
 
 ### Student API (`/student-api`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/all` | Get role-scoped student profiles with users populated |
 | POST | `/basic-info` | Create student profile (requires user ref) |
 | GET | `/info/:id` | Get student profile with populated user |
 | PATCH | `/update/:id` | Update student profile |
@@ -687,6 +721,7 @@ npm run dev    # Starts Vite dev server on port 5173
 ### Faculty API (`/faculty-api`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/all` | Get role-scoped faculty profiles with users populated |
 | POST | `/basic-info` | Create faculty profile |
 | GET | `/info/:id` | Get faculty with populated user, college, dept |
 | PATCH | `/update/:id` | Update faculty profile |
@@ -722,33 +757,48 @@ npm run dev    # Starts Vite dev server on port 5173
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/create` | Create subject |
+| GET | `/curriculum/btech-3` | Get the seeded B.Tech semester curriculum |
 | GET | `/info/:id` | Get subject with populated college, dept, course, teacher |
 | GET | `/all` | Get all subjects |
 | PATCH | `/update/:id` | Update subject |
 | DELETE | `/delete/:id` | Delete subject |
 
+### Room API (`/room-api`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/all` | Get active rooms sorted by code |
+| GET | `/info/:id` | Get room details |
+
+### Timetable API (`/timetable-api`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/current` | Get the published timetable for branch, year, and semester |
+| GET | `/day/:day` | Get one day from the published timetable |
+
 ### Assignment API (`/assignment-api`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/create` | Create assignment |
+| POST | `/create` | Create assignment with an uploaded file |
 | GET | `/info/:id` | Get assignment with populated submissions & student info |
-| GET | `/all` | Get all assignments |
+| GET | `/all` | Get all assignments visible to the current role |
+| GET | `/download/:id/:index` | Download an assignment attachment |
 | PATCH | `/update/:id` | Update assignment |
 | DELETE | `/delete/:id` | Delete assignment |
 
 ### Submission API (`/submission-api`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/create/:id` | Create submission for assignment, auto-links to assignment |
-| GET | `/info/:id` | Get submission with populated student + assignment |
-| GET | `/all` | Get all submissions |
-| PATCH | `/update/:id` | Update submission (marks/grade) |
-| DELETE | `/delete/:id` | Delete submission, removes from assignment |
+| POST | `/create/:id` | Create or replace a student's assignment submission |
+| GET | `/info/:id` | Get an accessible submission with references populated |
+| GET | `/all` | Get submissions visible to the current role |
+| GET | `/download/:id/:index` | Download an accessible submission attachment |
+| PATCH | `/review/:id` | Review/grade a submission (authorized faculty, HOD, or admin) |
+| DELETE | `/delete/:id` | Delete an accessible submission and remove its assignment link |
 
 ### Attendance API (`/attendance-api`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/add` | Add attendance record |
+| POST | `/mark` | Create attendance records for a subject |
 | GET | `/info/:id` | Get attendance with populated student + subject |
 | GET | `/all` | Get all attendance records |
 | PATCH | `/update/:id` | Update attendance status |
@@ -796,13 +846,14 @@ npm run dev    # Starts Vite dev server on port 5173
 ### Request/Leave API (`/request-api`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/create` | Submit a new request or leave |
-| GET | `/all` | Get all requests with populated user |
-| GET | `/user/:userId` | Get all requests for a specific user |
-| GET | `/info/:id` | Get request by ID with populated user |
-| PATCH | `/update/:id` | Update request details |
-| DELETE | `/delete/:id` | Delete request |
-| PATCH | `/update-status/:id` | Update request status (workflow) |
+| POST | `/create` | Submit a request or leave with an optional attachment |
+| GET | `/all` | Get all requests for reviewers or the current user's requests |
+| GET | `/user/:userId` | Get requests for a permitted user |
+| GET | `/info/:id` | Get an accessible request with user/reviewer populated |
+| GET | `/download/:id/:index` | Download an accessible attachment |
+| PATCH | `/update/:id` | Update request details within role/status permissions |
+| PATCH | `/review/:id` | Review, approve, reject, escalate, or comment (HOD/admin) |
+| DELETE | `/delete/:id` | Delete an accessible request |
 
 ---
 
@@ -810,24 +861,23 @@ npm run dev    # Starts Vite dev server on port 5173
 
 ## ⚙️ Rate Limiting
 
-The backend implements a **custom rate limiting middleware** (`middleware/rateLimiter.js`) that enforces:
+The backend implements a **custom in-memory rate limiting middleware** (`middleware/rateLimiter.js`) that enforces:
 
-- **1 request per minute (60,000ms)** per client IP address
-- **HTTP 429 (Too Many Requests)** response when the limit is exceeded
-- Response includes:
-  - `limit`: The rate limit configuration
-  - `retryAfter`: Seconds until the next request can be made
-  - `resetAt`: ISO timestamp of when the rate limit window resets
+- **300 requests per 60,000 ms window** per client IP address
+- **HTTP 429 (Too Many Requests)** when the limit is exceeded
+- A response containing `limit`, `retryAfter`, and `resetAt`
 
 ### How It Works
 
-1. Each incoming request is intercepted by the `rateLimit` middleware
-2. The client IP is extracted (supports proxies via `req.ip`)
-3. Request timestamps are stored in an in-memory `Map` keyed by IP
-4. Timestamps older than 60 seconds are filtered out before checking
-5. If the client has already made 1 request in the current window, a 429 response is returned
-6. Otherwise, the current timestamp is recorded and the request proceeds
-7. The store is periodically cleaned up to prevent memory leaks (>10,000 entries)
+1. Each incoming request is intercepted by `rateLimit`.
+2. The client IP is read from `req.ip` with a connection fallback.
+3. Request timestamps are stored in an in-memory `Map` keyed by IP.
+4. Timestamps older than 60 seconds are removed from the current window.
+5. At 300 retained requests, the middleware returns `429` instead of calling the route.
+6. Otherwise, the current timestamp is recorded and the request proceeds.
+7. When the map exceeds 10,000 entries, expired IP histories are cleaned up.
+
+Because the store is process-local, use a shared store such as Redis when running multiple API instances.
 
 ### Usage
 
@@ -877,12 +927,12 @@ Company
 ## 📝 Notes
 
 - All passwords are hashed with **bcryptjs** before storing in MongoDB.
-- **JWT tokens** expire in **1 day** and are used for authenticated routes (commented out in current version).
-- The backend uses **soft delete** patterns (`isActive: false`) instead of hard deletion.
-- **Rate limiting** is enforced at **1 request per minute per IP** using a custom in-memory middleware (`middleware/rateLimiter.js`).
-- **Error middleware** handles Mongoose validation errors, Cast errors, and duplicate key errors gracefully.
-- **Announcements API**, **Events API**, **Company API**, **Drives API**, and **Requests API** are fully implemented with full CRUD operations.
-- `req/*.http` files are provided for manual API testing with VS Code REST Client.
+- **JWT tokens** expire in **1 day** and are sent in an HTTP-only cookie for authenticated routes.
+- Some user/profile resources use soft-delete patterns (`isActive: false`), while workflow records such as submissions and requests may be hard-deleted.
+- **Rate limiting** is enforced at **300 requests per minute per IP** using a custom in-memory middleware.
+- **Error middleware** handles Mongoose validation errors, cast errors, and duplicate keys gracefully.
+- The backend also includes rooms, timetables, curriculum data, authenticated downloads, upload validation, and role-scoped list endpoints.
+- `Backend/req/*.http` files are provided for manual API testing with VS Code REST Client.
 
 
 ---

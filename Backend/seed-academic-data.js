@@ -10,6 +10,7 @@ import { facultymodel } from "./modules/faculty.js";
 import { roommodel } from "./modules/room.js";
 import { subjectmodel } from "./modules/subject.js";
 import { timetabletmodel } from "./modules/timetable.js";
+import { studentmodel } from "./modules/studentmodule.js";
 
 const emailFor = (name) =>
   `${name
@@ -33,9 +34,27 @@ const periodType = (period, subject) => {
 
 try {
   await mongoose.connect(
-    process.env.MONGO_URI || "mongodb://localhost:27017/campusflow",
+    process.env.MONGO_DIRECT_URI || process.env.MONGO_URI || "mongodb://localhost:27017/campusflow",
   );
   const password = await bcrypt.hash("CampusFlow@2026", 12);
+  // Older deployments created a unique Rollno index that is not part of the
+  // current student schema. It prevents multiple students with no Rollno.
+  const studentIndexes = await studentmodel.collection.listIndexes().toArray().catch((error) => {
+    if (error.codeName === "NamespaceNotFound") return [];
+    throw error;
+  });
+  if (studentIndexes.some((index) => index.name === "Rollno_1")) {
+    await studentmodel.collection.dropIndex("Rollno_1");
+    console.log("Removed obsolete student Rollno_1 index");
+  }
+  const facultyIndexes = await facultymodel.collection.listIndexes().toArray().catch((error) => {
+    if (error.codeName === "NamespaceNotFound") return [];
+    throw error;
+  });
+  if (facultyIndexes.some((index) => index.name === "employeeId_1")) {
+    await facultymodel.collection.dropIndex("employeeId_1");
+    console.log("Removed obsolete faculty employeeId_1 index");
+  }
   const facultyNames = [
     ...new Set(
       btech3Curriculum.subjects.flatMap((subject) => subject.faculty),
@@ -150,6 +169,27 @@ try {
     );
     facultyByName.set(name, faculty);
     facultyUserByName.set(name, user);
+  }
+
+  // Keep a small, realistic cohort attached to the same branch/year/semester
+  // as the timetable so the dashboard has student records on a fresh cluster.
+  const studentSeeds = [
+    ["Demo Student", "student.demo@campusflow.local", "CF-DEMO-3Y-DSA", 8.6],
+    ["Demo Student 2", "student2.demo@campusflow.local", "CF-DEMO-3Y-DSA-2", 8.1],
+    ["Demo Student 3", "student3.demo@campusflow.local", "CF-DEMO-3Y-DSA-3", 7.9],
+    ["Demo Student 4", "student4.demo@campusflow.local", "CF-DEMO-3Y-DSA-4", 9.0],
+  ];
+  for (const [index, [username, email, id, cgpa]] of studentSeeds.entries()) {
+    const user = await usermodel.findOneAndUpdate(
+      { email },
+      { $set: { role: "student", username, id, studentid: id, password, phno: 9200000000 + index, department: btech3Curriculum.department, branch: btech3Curriculum.branch, year: btech3Curriculum.year, semester: btech3Curriculum.semester, isActive: true } },
+      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
+    );
+    await studentmodel.findOneAndUpdate(
+      { user: user._id },
+      { $set: { cgpa, admissionYear: 2024, graduationYear: 2027, program: btech3Curriculum.title, skills: ["JavaScript", "Python", "Data Analysis"], isActive: true } },
+      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
+    );
   }
 
   const roomCodes = [

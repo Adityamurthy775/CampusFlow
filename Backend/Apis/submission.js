@@ -1,6 +1,7 @@
 import exp from "express";
 import { submissionmodel } from "../modules/submission.js";
 import { assignmentmodel } from "../modules/assignment.js";
+import { subjectmodel } from "../modules/subject.js";
 import { verifyToken, ALL_ROLES } from "../middleware/verifyToken.js";
 import { upload, fileMeta, storedFilePath, removeStoredFiles } from "../middleware/upload.js";
 
@@ -14,14 +15,17 @@ function populateSubmissions(query) {
 }
 
 async function canReview(assignment, req) {
-  return ["admin", "hod"].includes(req.role) || assignment?.teacherinfo?.toString() === req.userId;
+  if (["admin", "hod"].includes(req.role)) return true;
+  if (req.role !== "teacher" || !assignment) return false;
+  const subject = await subjectmodel.findById(assignment.subjectinfo).select("teacherinfo additionalFaculty");
+  return subject && [subject.teacherinfo?.toString(), ...(subject.additionalFaculty || []).map((id) => id.toString())].includes(req.userId);
 }
 
 async function canAccess(submission, req) {
   if (["admin", "hod"].includes(req.role)) return true;
   if (req.role === "student") return submission.studentinfo?.toString() === req.userId;
   if (req.role === "teacher") {
-    const assignment = await assignmentmodel.findById(submission.assignment).select("teacherinfo");
+    const assignment = await assignmentmodel.findById(submission.assignment).select("teacherinfo subjectinfo");
     return canReview(assignment, req);
   }
   return false;
@@ -67,7 +71,8 @@ submissionapp.get("/all", verifyToken(...ALL_ROLES), async (req, res) => {
   const filter = {};
   if (req.role === "student") filter.studentinfo = req.userId;
   if (req.role === "teacher") {
-    const assignments = await assignmentmodel.find({ teacherinfo: req.userId }).select("_id");
+    const subjects = await subjectmodel.find({ $or: [{ teacherinfo: req.userId }, { additionalFaculty: req.userId }] }).select("_id");
+    const assignments = await assignmentmodel.find({ subjectinfo: { $in: subjects.map((subject) => subject._id) } }).select("_id");
     filter.assignment = { $in: assignments.map((assignment) => assignment._id) };
   }
   if (req.role === "placement-office") {

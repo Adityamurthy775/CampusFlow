@@ -26,6 +26,42 @@ const accounts = [
     semester: 1,
   },
   {
+    role: "student",
+    username: "Demo Student 2",
+    email: "student2.demo@campusflow.local",
+    id: "CF-DEMO-3Y-DSA-2",
+    password: "CampusFlow@2026",
+    phno: 9000000010,
+    department: "Data Science",
+    branch: "CSE-DSA",
+    year: 3,
+    semester: 1,
+  },
+  {
+    role: "student",
+    username: "Demo Student 3",
+    email: "student3.demo@campusflow.local",
+    id: "CF-DEMO-3Y-DSA-3",
+    password: "CampusFlow@2026",
+    phno: 9000000011,
+    department: "Data Science",
+    branch: "CSE-DSA",
+    year: 3,
+    semester: 1,
+  },
+  {
+    role: "student",
+    username: "Demo Student 4",
+    email: "student4.demo@campusflow.local",
+    id: "CF-DEMO-3Y-DSA-4",
+    password: "CampusFlow@2026",
+    phno: 9000000012,
+    department: "Data Science",
+    branch: "CSE-DSA",
+    year: 3,
+    semester: 1,
+  },
+  {
     role: "teacher",
     username: "Demo Teacher",
     email: "teacher.demo@campusflow.local",
@@ -59,7 +95,7 @@ const accounts = [
 
 try {
   await mongoose.connect(
-    process.env.MONGO_URI || "mongodb://localhost:27017/campusflow",
+    process.env.MONGO_DIRECT_URI || process.env.MONGO_URI || "mongodb://localhost:27017/campusflow",
   );
   const password = await bcrypt.hash("CampusFlow@2026", 12);
   for (const account of accounts) {

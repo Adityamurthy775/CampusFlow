@@ -4,6 +4,13 @@ import { verifyToken } from "../middleware/verifyToken.js"
 
 export const studentapp=exp.Router();
 
+studentapp.get("/all",verifyToken("admin","student","hod","teacher","placement-office"),async(req,res)=>{
+  const students=await studentmodel.find({isActive:{$ne:false}})
+    .populate("user","username email role id studentid department branch year semester")
+    .sort({admissionYear:1, "user.username":1});
+  res.status(200).json({message:"Students fetched successfully",payload:students})
+})
+
 
 //add the addtional details for the student
 studentapp.post("/basic-info",verifyToken("admin","student","hod","teacher"),async(req,res)=>{

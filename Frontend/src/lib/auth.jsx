@@ -12,7 +12,11 @@ export function AuthProvider({ children }) {
     catch { setUser(null); }
   }
   useEffect(() => { refresh().finally(() => setLoading(false)); }, []);
-  async function login(email, password) { const data = await api.post("/user-api/login", { email, password }); setUser(data.payload || data.user); }
+  async function login(email, password) {
+    const data = await api.post("/user-api/login", { email, password });
+    const authenticated = await api.get("/user-api/check-auth");
+    setUser(authenticated.payload || authenticated.user || data.payload || data.user);
+  }
   async function register(body) { const data = await api.post("/user-api/register", { ...body, phno: Number(body.phno) || 0 }); setUser(data.payload || data.user); }
   async function logout() { try { await api.get("/user-api/logout"); } catch { /* Logout should remain local when the API is unavailable. */ } setUser(null); }
 

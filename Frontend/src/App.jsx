@@ -9,16 +9,6 @@ import Dashboard from "@/pages/dashboard";
 
 let introPlayed = false;
 
-function HomeGate() {
-  const [ready, setReady] = useState(introPlayed);
-  const complete = useCallback(() => {
-    introPlayed = true;
-    setReady(true);
-  }, []);
-
-  return ready ? <Landing /> : <GlyphPortalPreloader onComplete={complete} />;
-}
-
 function Routes() {
   const path = useHashRoute();
   const { user, loading } = useAuth();
@@ -35,16 +25,21 @@ function Routes() {
     }
     return <Dashboard />;
   }
-  return <HomeGate />;
+  return <Landing />;
 }
 
 export default function App() {
+  const [ready, setReady] = useState(introPlayed);
+  const complete = useCallback(() => {
+    introPlayed = true;
+    setReady(true);
+  }, []);
+
   return (
     <div className="campusflow-app" style={colorPalette}>
+      {!ready && <GlyphPortalPreloader onComplete={complete} />}
       <AuthProvider>
-        <RouterProvider>
-          <Routes />
-        </RouterProvider>
+        <RouterProvider>{ready && <Routes />}</RouterProvider>
       </AuthProvider>
     </div>
   );

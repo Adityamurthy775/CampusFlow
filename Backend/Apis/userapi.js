@@ -11,6 +11,13 @@ export const  userapp=exp.Router();
 // JWT secret key (use env variable in production)
 const jwtSecret = process.env.JWT_SECRET || "campusflow_super_secret_key_2026";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.COOKIE_SECURE === "true",
+  sameSite: process.env.COOKIE_SAME_SITE || "lax",
+  maxAge: 24 * 60 * 60 * 1000
+};
+
 export function registrationConflict(fields=[]){
   const uniqueFields=[...new Set(fields.map(field=>field==="studentid"?"id":field))];
   if(!uniqueFields.length){
@@ -99,12 +106,7 @@ userapp.post("/login",async(req,res)=>{
   );
 
   //Set the token as an HTTP-only cookie for browser clients
-  res.cookie("token",token,{
-    httpOnly:true,
-    secure:false, // set true in production with HTTPS
-    sameSite:"lax",
-    maxAge:24 * 60 * 60 * 1000 // 1 day in ms
-  })
+  res.cookie("token",token,cookieOptions)
 
   //remove password from user document
   const userData=user.toObject();
@@ -116,11 +118,7 @@ userapp.post("/login",async(req,res)=>{
 //// LOGOUT - Clears httpOnly cookie ////
 userapp.get("/logout",(req,res)=>{
   //remove the token cookie from the client browser
-  res.clearCookie("token",{
-    httpOnly:true,
-    secure:false,
-    sameSite:"lax"
-  })
+  res.clearCookie("token",{httpOnly:cookieOptions.httpOnly,secure:cookieOptions.secure,sameSite:cookieOptions.sameSite})
   res.status(200).json({message:"Logout successful"})
 })
 

@@ -31,8 +31,36 @@
   flex-direction: column;
   height: 100vh;
   padding: 28px 18px 24px;
-  background: var(--portal-navy);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.14), transparent 30%),
+    linear-gradient(160deg, #0b1224 0%, #0d172d 56%, #101d38 100%);
   color: #f8fafc;
+}
+
+.portal-sidebar::before,
+.portal-sidebar::after {
+  position: absolute;
+  z-index: -1;
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(96, 165, 250, 0.12);
+  border-radius: 42% 58% 64% 36%;
+  content: "";
+  pointer-events: none;
+  transform: rotate(-18deg);
+}
+
+.portal-sidebar::before {
+  top: 22%;
+  right: -120px;
+}
+
+.portal-sidebar::after {
+  bottom: 8%;
+  left: -130px;
+  border-color: rgba(139, 92, 246, 0.1);
+  transform: rotate(34deg) scale(.8);
 }
 
 .portal-logo {
@@ -94,6 +122,8 @@
 
 .portal-sidebar nav button {
   position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 13px;
@@ -106,13 +136,55 @@
   font-size: 0.86rem;
   font-weight: 700;
   text-align: left;
-  transition: background 0.2s, color 0.2s;
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: background 0.35s, color 0.35s, box-shadow 0.35s, transform 0.35s;
 }
 
 .portal-sidebar nav button:hover,
 .portal-sidebar nav button.active {
   background: var(--portal-navy-soft);
   color: #fff;
+}
+
+.portal-sidebar nav button::after {
+  position: absolute;
+  z-index: -1;
+  top: -34px;
+  right: -18px;
+  width: 92px;
+  height: 92px;
+  border-radius: 42% 58% 65% 35%;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.34), rgba(59, 130, 246, 0.08) 46%, transparent 72%);
+  content: "";
+  opacity: 0;
+  transform: scale(.35) rotate(-28deg);
+  transition: opacity 0.35s, transform 0.45s;
+}
+
+.portal-sidebar nav button:hover {
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.12), 0 8px 24px rgba(2, 8, 23, 0.16);
+  transform: translateX(5px);
+}
+
+.portal-sidebar nav button:hover::after,
+.portal-sidebar nav button.active::after {
+  opacity: 1;
+  transform: scale(1.2) rotate(8deg);
+}
+
+.portal-sidebar nav button > .portal-icon {
+  position: relative;
+  z-index: 1;
+  transition: color 0.35s, transform 0.45s;
+}
+
+.portal-sidebar nav button:hover > .portal-icon {
+  color: #93c5fd;
+  transform: rotate(-8deg) scale(1.12);
+}
+
+.portal-sidebar nav button:hover span {
+  transform: translateX(2px);
 }
 
 .portal-sidebar nav button.active::before {
@@ -127,6 +199,9 @@
 
 .portal-sidebar nav button span {
   flex: 1;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.35s;
 }
 
 .portal-sidebar nav button em {
@@ -645,6 +720,24 @@
   font-style: normal;
   font-weight: 800;
 }
+
+.portal-clickable-card { cursor: pointer; }
+.portal-clickable-card:hover { border-color: #3b82f6; box-shadow: 0 10px 24px rgba(30, 64, 175, .08); }
+.portal-modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 24px; background: rgba(15, 23, 42, .46); }
+.portal-modal { position: relative; width: min(560px, 100%); max-height: min(680px, 90vh); overflow: auto; padding: 30px; border: 1px solid #dbe4f0; border-radius: 20px; background: #fff; box-shadow: 0 24px 80px rgba(15, 23, 42, .24); }
+.portal-modal-close { position: absolute; top: 14px; right: 16px; border: 0; background: transparent; color: #64748b; font-size: 26px; cursor: pointer; }
+.portal-modal-kicker { color: #2563eb; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.portal-modal h2 { margin: 8px 0 6px; color: #0f172a; }
+.portal-modal-meta { margin: 0 0 20px; color: #64748b; font-size: 13px; }
+.portal-modal p { color: #334155; line-height: 1.6; white-space: pre-wrap; }
+.portal-modal-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+.portal-modal-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+.portal-modal-facts span { padding: 12px; border-radius: 10px; background: #f8fafc; color: #334155; font-size: 13px; }
+.portal-modal-facts b { display: block; margin-bottom: 5px; color: #64748b; font-size: 10px; text-transform: uppercase; }
+.portal-secondary-action { border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 12px; background: #eff6ff; color: #1d4ed8; font-size: .75rem; font-weight: 800; cursor: pointer; }
+.portal-secondary-action:hover:not(:disabled) { background: #dbeafe; }
+.portal-secondary-action:disabled { cursor: default; opacity: .65; }
+.portal-submission-summary { display: block; margin: 8px 0; color: #2563eb; font-size: .72rem; font-weight: 700; }
 
 .portal-progress-list,
 .portal-usage,
@@ -1177,6 +1270,53 @@
   color: #94a3b8;
   font-size: 0.78rem;
   text-align: center;
+}
+
+.portal-live-list {
+  display: grid;
+  gap: 10px;
+}
+
+.portal-live-list article {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  border-bottom: 1px solid #e6ebf3;
+  padding: 12px 0;
+  font-size: 0.74rem;
+}
+
+.portal-live-list article:last-child {
+  border-bottom: 0;
+}
+
+.portal-live-list article > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.portal-live-list time {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.portal-live-list small {
+  color: #64748b;
+  font-size: 0.68rem;
+}
+
+.portal-live-list em {
+  color: #475569;
+  font-size: 0.7rem;
+  font-style: normal;
+  text-align: right;
+}
+
+.portal-live-list.compact article {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
 }
 
 .portal-workspace-grid {

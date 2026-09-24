@@ -13,6 +13,7 @@ const eventSchema = new Schema({
   startdate: { type: Date, required: true },
   enddate: { type: Date, required: true },
   members: { type: Number, min: 0, default: 0 },
+  participants: [{ type: Types.ObjectId, ref: "user" }],
   logo: { type: String },
   createdBy: { type: Types.ObjectId, ref: "user", required: true },
   status: { type: String, enum: ["pending", "draft", "published", "archived"], default: "pending" },

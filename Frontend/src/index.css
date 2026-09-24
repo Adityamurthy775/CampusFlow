@@ -221,3 +221,10 @@
   .site-navbar nav { gap: .8rem; }
   .site-navbar nav button { font-size: .58rem; }
 }
+
+.demo-accounts { display: grid; gap: .6rem; margin-top: 1.4rem; border: 1px dashed #b6c0b2; padding: .9rem; }
+.demo-accounts > span { color: #526159; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.demo-accounts > div { display: flex; flex-wrap: wrap; gap: .4rem; }
+.demo-accounts button { border: 1px solid #b6c0b2; border-radius: 999px; padding: .35rem .7rem; background: transparent; color: #315c57; font-size: .7rem; font-weight: 800; }
+.demo-accounts button:hover, .demo-accounts button.active { border-color: #315c57; background: #315c57; color: #f7f4ee; }
+.demo-accounts small { color: #67756d; font-size: .66rem; overflow-wrap: anywhere; }

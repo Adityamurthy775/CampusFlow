@@ -2,6 +2,19 @@
 
 Updated: 2026-09-24
 
+## Latest implementation status
+
+- Role-based sidebar navigation is active for Student, Faculty, HOD, Placement Office, and Admin.
+- Faculty/teachers can create assignments, view submissions, and mark attendance only for subjects assigned to them. The backend also enforces these subject-level permissions.
+- Students can view published timetable data and submit assignments/leave requests, but cannot edit timetable, attendance, grades, or staff-owned records.
+- Timetable periods display explicit 12-hour AM/PM labels in the dashboard.
+- Assignment and announcement cards are clickable and open an information modal with their details.
+- Dashboard sidebar menu items now use a CSS-only kinetic hover effect with animated glow, organic background accents, icon motion, and label movement; no additional SVG artwork was added.
+- Assignment creation now uses a subject text input instead of a dropdown. The entered subject code/name is resolved against the faculty member's assigned subjects before submission, so the backend still receives the correct subject ID.
+- Published event cards now show a student-only Join event button. Joining is persisted server-side in the event participants list, prevents duplicate joins, and enforces the optional event capacity.
+- Faculty assignment cards now show the usernames of students who submitted each assignment; the Grades section continues to provide the full submission/review table.
+- The frontend production build passes with `npm run build`. ESLint reports two non-blocking existing React hook warnings and no errors.
+
 ## Project structure
 
 - Frontend: `Frontend/`
@@ -63,8 +76,8 @@ Feature sections and permissions:
 
 | Section | Reads (role-scoped) | Writes |
 | --- | --- | --- |
-| Courses | `/subject-api/all` (non-student) or `/subject-api/curriculum/btech-3` (student) | — |
-| Schedule | `/timetable-api/current?branch&year&semester` | — |
+| Courses | `/subject-api/all` (non-student) or `/subject-api/curriculum/btech-3` (student) | â€” |
+| Schedule | `/timetable-api/current?branch&year&semester` | â€” |
 | Assignments | `/assignment-api/all`, `/submission-api/all` | Teacher/HOD/Admin create via `POST /assignment-api/create` (multipart); Student submits via `POST /submission-api/create/:id` (multipart) |
 | Attendance | `/attendance-api/all` (own/subject scoped) | Teacher/HOD/Admin `POST /attendance-api/mark` |
 | Grades | `/submission-api/all` | Teacher/HOD/Admin `PATCH /submission-api/review/:id` |
@@ -79,7 +92,7 @@ Uploads (assignment briefs, student answers, request attachments) are stored on 
 
 The demo teacher (`teacher.demo@campusflow.local`) is added to every seeded subject as additional faculty, so the demo teacher can create assignments for all subjects. `seed-academic-data.js` re-runs safely.
 
-All role names map to backend role strings: `teacher` → faculty, `placement-office` → placement, plus `student`, `hod`, `admin`.
+All role names map to backend role strings: `teacher` â†’ faculty, `placement-office` â†’ placement, plus `student`, `hod`, `admin`.
 
 ## API security
 
@@ -101,9 +114,9 @@ Large stacking cards use the Coolors palette stored in `colorPalettes.bigCardThe
 
 Large cards use solid backgrounds, palette-matched borders/shadows, and no gradient, shine, filter, or text-shadow treatment.
 
-Feature cards use the complete five-family 100–900 palette and gradients from `colorPalettes.cardThemes`, with no text-shadow, brightness, or saturation shine effects.
+Feature cards use the complete five-family 100â€“900 palette and gradients from `colorPalettes.cardThemes`, with no text-shadow, brightness, or saturation shine effects.
 
-The four story cards beginning with `01 — The day` use the second Coolors palette from `colorPalettes.storyCardThemes`:
+The four story cards beginning with `01 â€” The day` use the second Coolors palette from `colorPalettes.storyCardThemes`:
 
 - `#dad7cd`
 - `#a3b18a`
@@ -244,13 +257,69 @@ cd Backend
 npm run seed:academic
 ```
 
+To load every demo dataset (accounts, academic structure, and dashboard content) in one go:
+
+```bash
+cd Backend
+npm run seed:all
+```
+
+`seed:content` is idempotent: it clears only the demo-owned announcements, events, assignments, submissions, attendance, requests, companies, and drives, then recreates them. It creates 4 announcements, 4 events, 3 assignments, 3 submissions (one already graded), 40 attendance records across 4 students, 4 requests (one approved), 3 companies, and 2 drives. It throws a clear error if `seed:demo` or `seed:academic` has not been run first.
+
+Verify the seeded cluster, including that every timetable period resolves to real subject data:
+
+```bash
+cd Backend
+npm run verify:data
+```
+
+`verify:data` prints a pass/fail check per dataset plus sample timetable-to-subject rows (day, subject, code, teacher assigned) and exits non-zero on any failure.
+
 ## Environment
 
-`Frontend/.env.local`:
+Deployed services:
+
+- Frontend: `https://campusflow-nplz.onrender.com`
+- Backend: `https://campusflow-backend-it50.onrender.com`
+
+`Frontend/.env.local` for local testing:
 
 ```env
 VITE_API_URL=http://localhost:4000
 ```
+
+`Backend/.env` (local development):
+
+```env
+MONGO_URI=mongodb://localhost:27017/campusflow
+JWT_SECRET=<long random string>
+CLIENT_ORIGIN=https://campusflow-nplz.onrender.com,http://localhost:5173,http://127.0.0.1:5173
+COOKIE_SAME_SITE=lax
+COOKIE_SECURE=false
+PORT=4000
+```
+
+### Render dashboard environment variables
+
+Backend service (`campusflow-backend-it50`) â€” Environment tab:
+
+```text
+MONGO_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/campusflow
+JWT_SECRET=<new long random string>
+CLIENT_ORIGIN=https://campusflow-nplz.onrender.com
+COOKIE_SAME_SITE=lax
+COOKIE_SECURE=true
+```
+
+`PORT` is injected by Render; `server.js` now binds `process.env.PORT` (falling back to 4000), so do not set it manually on Render.
+
+Frontend service (`campusflow-nplz`) â€” Environment tab (requires a rebuild after changing):
+
+```text
+VITE_API_URL=https://campusflow-backend-it50.onrender.com
+```
+
+The frontend and backend are both on `*.onrender.com`, so they are same-site and `SameSite=Lax` cookies work; set `COOKIE_SECURE=true` because Render serves HTTPS. If the frontend is ever moved to a different domain, set `COOKIE_SAME_SITE=none` as well.
 
 Start the backend:
 
@@ -280,19 +349,20 @@ Restart the dev server and hard-refresh the browser afterward.
 
 ## Verification completed
 
-- Frontend ESLint and production build previously passed before the latest role-dashboard and native-store changes; both still need a fresh run.
+- Frontend production build passed after the latest role-menu, timetable, and detail-modal changes.
+- Frontend ESLint passed with no errors; two existing non-blocking React hook dependency warnings remain.
 - The static campus data selector removes the missing `zustand` runtime dependency, so Vite no longer needs an install to resolve `useCampusStore.js`.
-- Vite dependency optimization — passed for React, Motion, GSAP, and `@gsap/react`.
-- Backend syntax checks passed before the Admin and user-permission changes; the updated files still need a fresh syntax check.
-- Curriculum data assertions — passed.
-- Isolated curriculum HTTP endpoint — passed.
-- Demo seed — passed for the original four roles; the new five-role seed is pending.
-- The new role-dashboard source and Admin permission boundaries were reviewed statically; runtime checks remain blocked by the command runner.
-- Student, teacher, HOD, and placement-office logins against `http://127.0.0.1:4000` — passed.
-- Duplicate registration against MongoDB — returned the expected 409 contract.
+- Vite dependency optimization â€” passed for React, Motion, GSAP, and `@gsap/react`.
+- Backend permission and API changes were exercised through authenticated local endpoint smoke tests.
+- Curriculum data assertions â€” passed.
+- Isolated curriculum HTTP endpoint â€” passed.
+- Demo seed and academic seed completed for all five roles and the seeded academic/dashboard datasets.
+- Role-dashboard source and Admin permission boundaries were reviewed; authenticated local endpoint smoke tests passed.
+- Student, teacher, HOD, placement-office, and admin logins against the local backend passed.
+- Duplicate registration against MongoDB â€” returned the expected 409 contract.
 - Homepage search confirmed no `B.Tech`, subject, timetable, curriculum, Glyph Portal, or landing-mounted navigation content.
-- The new academic models, API routes, and `seed-academic-data.js` were added, but syntax/seed execution is pending because the command runner cannot spawn processes in this session.
-- The functional workspace (`dashboardFeatures.jsx`), assignment/submission/request/attendance/event/announcement/company/drive APIs, and the drive-model ref relaxation were reviewed statically against the seed contracts; runtime is pending.
+- The academic models, API routes, timetable seed, local MongoDB seed, and Atlas/cluster seed were completed and verified.
+- The functional workspace and assignment/submission/request/attendance/event/announcement/company/drive APIs were checked against seeded data; local authenticated smoke tests returned 200 for the main dashboard APIs.
 - Graphify refresh remains blocked on Windows by `bun: command not found: sh`.
 
 ## Manual release checks
@@ -301,7 +371,7 @@ Restart the dev server and hard-refresh the browser afterward.
 - [ ] Confirm the regular navbar stays visible and the old overlay menu is absent.
 - [ ] Confirm Home, Navbar, Footer, and feature data are separated into their component/store files.
 - [ ] Confirm feature cards appear after the story sections and contain website features rather than project details.
-- [ ] Confirm story cards 01–04 use the solid `#dad7cd` / `#a3b18a` / `#588157` / `#344e41` palette.
+- [ ] Confirm story cards 01â€“04 use the solid `#dad7cd` / `#a3b18a` / `#588157` / `#344e41` palette.
 - [ ] Confirm large and feature cards have no shine, text-shadow, brightness, or saturation effects.
 - [ ] Log in with each of the five role credentials, re-seed first so the Admin account exists.
 - [ ] Confirm Student, Faculty, HOD, Placement Office, and Admin render their matching dashboard layouts.

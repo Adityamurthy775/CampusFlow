@@ -8,7 +8,8 @@ function populateEvents(query) {
   return query
     .populate("coursesinfo", "name code")
     .populate("deptinfo", "name code")
-    .populate("createdBy", "username email role");
+    .populate("createdBy", "username email role")
+    .populate("participants", "username email id");
 }
 
 function canManage(event, req) {
@@ -46,6 +47,20 @@ eventapp.get("/info/:id", verifyToken(...ALL_ROLES), async (req, res) => {
   const event = await eventmodel.findById(req.params.id);
   if (!event) return res.status(404).json({ message: "Event not found" });
   res.status(200).json({ message: "Event fetched successfully", payload: await populateEvents(eventmodel.findById(event._id)) });
+});
+
+eventapp.post("/join/:id", verifyToken(...ALL_ROLES), async (req, res) => {
+  const event = await eventmodel.findById(req.params.id);
+  if (!event) return res.status(404).json({ message: "Event not found" });
+  if (event.status !== "published") return res.status(409).json({ message: "Only published events can be joined" });
+  if (event.members && event.participants.length >= event.members && !event.participants.some((id) => id.toString() === req.userId)) {
+    return res.status(409).json({ message: "This event is full" });
+  }
+  if (event.participants.some((id) => id.toString() === req.userId)) {
+    return res.status(200).json({ message: "You already joined this event", payload: await populateEvents(eventmodel.findById(event._id)) });
+  }
+  await eventmodel.findByIdAndUpdate(event._id, { $addToSet: { participants: req.userId } });
+  res.status(200).json({ message: "Event joined successfully", payload: await populateEvents(eventmodel.findById(event._id)) });
 });
 
 eventapp.patch("/update/:id", verifyToken(...ALL_ROLES), async (req, res) => {
