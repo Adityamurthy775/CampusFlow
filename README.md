@@ -338,8 +338,6 @@ flowchart TD
     style DepartmentCreated fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style CourseCreated fill:#ffa500,stroke:#333,stroke-width:2px,color:#000
     style SubjectCreated fill:#ff9900,stroke:#333,stroke-width:2px,color:#000
-
-    Note over CollegeCreated,DriveLinked: Rate Limit: 300 requests per minute
 ```
 
 ### 7. Request/Leave Management Flow
@@ -359,8 +357,6 @@ stateDiagram-v2
     style Submitted fill:#646cff,stroke:#333,stroke-width:2px,color:#fff
     style Approved fill:#2ca02c,stroke:#333,stroke-width:2px,color:#fff
     style Rejected fill:#d62728,stroke:#333,stroke-width:2px,color:#fff
-
-    Note over Submitted,Escalated: Rate Limit: 300 requests per minute
 ```
 
 ### 8. JWT Authentication & Authorization Flow
@@ -388,7 +384,7 @@ sequenceDiagram
 
     User->>Frontend: Navigate to protected route
     Frontend->>Backend: GET /student-api/info/:id (cookie + Authorization: Bearer token)
-    Backend->>Backend: Read cookie or bearer token; verify JWT, active user, and role
+    Backend->>Backend: Read cookie or bearer token, verify JWT, active user, and role
     alt Token and user valid
         Backend->>Database: Query with model.populate()
         Database-->>Backend: Return requested data
@@ -406,55 +402,51 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    GetUserRequest[GET /student-api/info/:id] --> FindStudent[Student Model.findById(id)]
-    FindStudent --> PopulateUser[populate('studentinfo')<br>→ joins User collection]
-    PopulateUser --> PopulateSubject[populate('subjectinfo')<br>→ joins Subject collection]
-    PopulateSubject --> PopulateAssignment[populate('assignments')<br>→ joins Assignment collection]
-    PopulateAssignment --> PopulateSubmission[populate('submissions')<br>→ joins Submission collection]
-    PopulateSubmission --> PopulateTeacher[populate('teacherinfo')<br>→ joins User collection]
+    GetUserRequest["GET /student-api/info/:id"] --> FindStudent["Student Model.findById(id)"]
+    FindStudent --> PopulateUser["populate('studentinfo')<br>→ joins User collection"]
+    PopulateUser --> PopulateSubject["populate('subjectinfo')<br>→ joins Subject collection"]
+    PopulateSubject --> PopulateAssignment["populate('assignments')<br>→ joins Assignment collection"]
+    PopulateAssignment --> PopulateSubmission["populate('submissions')<br>→ joins Submission collection"]
+    PopulateSubmission --> PopulateTeacher["populate('teacherinfo')<br>→ joins User collection"]
 
-    GetUserRequest -->|Same flow applies to| GetAssignment[GET /assignment-api/info/:id]
-    GetAssignment --> FindAssignment[Assignment Model.findById(id)]
-    FindAssignment --> PopulateSubject2[populate('subjectinfo')<br>→ joins Subject collection]
-    PopulateSubject2 --> PopulateStudent[populate('studentinfo')<br>→ joins User collection]
+    GetUserRequest -->|Same flow applies to| GetAssignment["GET /assignment-api/info/:id"]
+    GetAssignment --> FindAssignment["Assignment Model.findById(id)"]
+    FindAssignment --> PopulateSubject2["populate('subjectinfo')<br>→ joins Subject collection"]
+    PopulateSubject2 --> PopulateStudent["populate('studentinfo')<br>→ joins User collection"]
 
-    GetUserRequest -->|Same flow applies to| GetAttendance[GET /attendance-api/all]
-    GetAttendance --> FindAttendance[Attendance Model.find()]
-    FindAttendance --> PopulateSubject3[populate('subjectinfo')<br>→ joins Subject collection]
+    GetUserRequest -->|Same flow applies to| GetAttendance["GET /attendance-api/all"]
+    GetAttendance --> FindAttendance["Attendance Model.find()"]
+    FindAttendance --> PopulateSubject3["populate('subjectinfo')<br>→ joins Subject collection"]
 
     style GetUserRequest fill:#646cff,stroke:#333,stroke-width:2px,color:#fff
     style FindStudent fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style FindAssignment fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style FindAttendance fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
-
-    Note over GetUserRequest,PopulateTeacher: Rate Limit: 300 requests per minute
 ```
 
 ### 10. Soft Delete & Error Handling Flow
 
 ```mermaid
 flowchart TD
-    UserDeleteRequest[DELETE /user-api/delete/:id] --> CheckReferences{Check for related<br>documents in<br>cross-collections?}
-    CheckReferences -->|No references found| PerformSoftDelete[Query Model.findByIdAndUpdate<br>({ isActive: false })]
+    UserDeleteRequest["DELETE /user-api/delete/:id"] --> CheckReferences{Check for related<br>documents in<br>cross-collections?}
+    CheckReferences -->|No references found| PerformSoftDelete["Query Model.findByIdAndUpdate<br>({ isActive: false })"]
     PerformSoftDelete --> UpdateDB[Set isActive = false in document<br>and save to MongoDB]
-    UpdateDB --> ReturnSuccess[Return 200 OK:<br>Record soft-deleted successfully]
-    CheckReferences -->|Has references| PreventDelete[Return 400 Bad Request:<br>Cannot delete - has dependencies]
+    UpdateDB --> ReturnSuccess["Return 200 OK:<br>Record soft-deleted successfully"]
+    CheckReferences -->|Has references| PreventDelete["Return 400 Bad Request:<br>Cannot delete - has dependencies"]
 
-    UserDeleteRequest -->|Mongoose ValidationError| ValidationError[Catch ValidationError<br>(schema: required fields, enum)]
-    ValidationError --> Return400[Return 400 Bad Request<br>{message: Validation failed}]
+    UserDeleteRequest -->|Mongoose ValidationError| ValidationError["Catch ValidationError<br>(schema: required fields, enum)"]
+    ValidationError --> Return400["Return 400 Bad Request<br>{message: Validation failed}"]
 
-    UserDeleteRequest -->|Invalid ObjectId format| CastError[Catch CastError<br>(invalid ID format)]
-    CastError --> Return400Cast[Return 400 Bad Request<br>{message: Invalid ID format}]
+    UserDeleteRequest -->|Invalid ObjectId format| CastError["Catch CastError<br>(invalid ID format)"]
+    CastError --> Return400Cast["Return 400 Bad Request<br>{message: Invalid ID format}"]
 
-    UserDeleteRequest -->|Duplicate key violation| DuplicateKeyError[Catch MongoError<br>(code: 11000)]
-    DuplicateKeyError --> Return409[Return 409 Conflict<br>{message: Duplicate field value}]
+    UserDeleteRequest -->|Duplicate key violation| DuplicateKeyError["Catch MongoError<br>(code: 11000)"]
+    DuplicateKeyError --> Return409["Return 409 Conflict<br>{message: Duplicate field value}"]
 
     style UserDeleteRequest fill:#646cff,stroke:#333,stroke-width:2px,color:#fff
     style PerformSoftDelete fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style UpdateDB fill:#41ab5d,stroke:#333,stroke-width:2px,color:#fff
     style ReturnSuccess fill:#2ca02c,stroke:#333,stroke-width:2px,color:#fff
-
-    Note over UserDeleteRequest,Return409: Rate Limit: 300 requests per minute
 ```
 
 ---
