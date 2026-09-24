@@ -21,6 +21,10 @@ const subjectschema=new Schema({
     ref:"user",
     required:true
   },
+  additionalFaculty:[{
+    type:Types.ObjectId,
+    ref:"user"
+  }],
   name:{
     type:String,
     required:true
@@ -36,6 +40,18 @@ const subjectschema=new Schema({
   credits:{
     type:Number,
     required:true
+  },
+  year:{
+    type:Number,
+    enum:[1,2,3,4]
+  },
+  semester:{
+    type:Number,
+    enum:[1,2]
+  },
+  branch:{
+    type:String,
+    trim:true
   }
 },{versionKey:false})
 

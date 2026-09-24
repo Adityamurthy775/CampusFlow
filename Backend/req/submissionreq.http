@@ -1,0 +1,7 @@
+POST http://localhost:4000/submission-api/create/6aa11031225fa033a90d6d34
+Content-Type: application/json
+
+{
+  "studentinfo":"6a9a60a5ccc069b7dcb0d23e"
+
+}

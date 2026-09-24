@@ -1,0 +1,42 @@
+POST http://localhost:4000/request-api/create
+Content-Type: application/json
+
+{
+  "userinfo": "6a9a5ec18602ee5fc1a2775b",
+  "catogery": "leave",
+  "title": "Leave Application for Medical Checkup",
+  "subject": "Medical Leave",
+  "attachments": "https://example.com/medical-certificate.pdf",
+  "priority": "normal"
+}
+
+###
+GET http://localhost:4000/request-api/all
+
+###
+GET http://localhost:4000/request-api/user/6a9a5ec18602ee5fc1a2775b
+
+###
+GET http://localhost:4000/request-api/info/6a9be588496f9d171ff16267
+
+###
+PATCH http://localhost:4000/request-api/update/6a9be588496f9d171ff16267
+Content-Type: application/json
+
+{
+  "title": "Updated: Leave Application - Extended Stay",
+  "subject": "Medical Leave - Extended",
+  "comment": "Updated with additional details about hospital visit"
+}
+
+###
+PATCH http://localhost:4000/request-api/update-status/6a9be588496f9d171ff16267
+Content-Type: application/json
+
+{
+  "action": "approved",
+  "priority": "high"
+}
+
+###
+DELETE http://localhost:4000/request-api/delete/6a9be588496f9d171ff16267

@@ -1,0 +1,7 @@
+POST http://localhost:4000/attendance-api/add
+Content-Type: application/json
+
+{
+  "subjectinfo":"6aa027ea1906a24c40558d28",
+  "studentinfo":"6a9a5ec18602ee5fc1a2775b"
+}

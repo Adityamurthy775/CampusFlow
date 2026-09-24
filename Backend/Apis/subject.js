@@ -1,43 +1,74 @@
 import exp from "express"
 import { subjectmodel } from "../modules/subject.js"
-
+import { btech3Curriculum } from "../modules/btech3Curriculum.js"
+import { verifyToken, ALL_ROLES } from "../middleware/verifyToken.js"
 
 export const subjectapp=exp.Router();
 
-subjectapp.post("/create",async(req,res)=>{
-  //get the data from the req
+subjectapp.post("/create",verifyToken("admin","hod"),async(req,res)=>{
   const data=req.body;
-  //create a new doc
-  const newdoc= new subjectmodel(data);
-  //save the doc and send the res
-  await newdoc.save();
-  res.status(200).json({message:"subject is created"})
+  if(!data.name || !data.code){
+    return res.status(400).json({message:"Subject name and code are required"})
+  }
+  const newdoc=new subjectmodel(data);
+  const saved=await newdoc.save();
+  res.status(201).json({message:"Subject created successfully",payload:saved})
 })
 
-subjectapp.get("/info/:id",async(req,res)=>{
-  //get the id from the req
-  const id =req.params.id;
-  //find the subject from the id
-  const result=await subjectmodel.findById(id).populate("collegeinfo").populate("deptinfo").populate("courseinfo").populate("teacherinfo");
-  //send the response
-  if(!result){
-    return res.status(404).json({message:"cannot find the meaasge"})
+subjectapp.get("/curriculum/btech-3",(req,res)=>{
+  const requestedDay=req.query.day?.trim();
+  if(!requestedDay){
+    return res.status(200).json({message:"B.Tech third-year curriculum fetched successfully",payload:btech3Curriculum})
   }
-  res.status(201).json({message:"subject deatils",payload:result})
+  const day=btech3Curriculum.weeklySchedule.find(item=>item.day.toLowerCase()===requestedDay.toLowerCase());
+  if(!day){
+    return res.status(404).json({message:"Curriculum day not found"})
+  }
+  res.status(200).json({
+    message:"B.Tech third-year curriculum fetched successfully",
+    payload:{...btech3Curriculum,weeklySchedule:[day]}
+  })
 })
 
-
-subjectapp.patch("/update/:id",async(req,res)=>{
-  //get the id nd the data from the req
-  const updateddata=req.body;
-  const id=req.params.id;
-  //find the data from the id and update the id
-  const result=await subjectmodel.findByIdAndUpdate(id,
-    {$set:{...updateddata}},
-    {returnDocument:"after"}
-  )
+subjectapp.get("/info/:id",verifyToken(...ALL_ROLES),async(req,res)=>{
+  const result=await subjectmodel.findById(req.params.id)
+    .populate("collegeinfo","name code")
+    .populate("deptinfo","name")
+    .populate("courseinfo","name code")
+    .populate("teacherinfo","username email role department branch")
+    .populate("additionalFaculty","username email role department branch");
   if(!result){
-    return res.status(404).json({message:"cannot find the subject"})
+    return res.status(404).json({message:"Subject not found"})
   }
-  res.status(201).json({message:"subject datz is updated",payload:result})
+  res.status(200).json({message:"Subject details fetched successfully",payload:result})
+})
+
+subjectapp.patch("/update/:id",verifyToken("admin","hod"),async(req,res)=>{
+  const result=await subjectmodel.findByIdAndUpdate(
+    req.params.id,
+    {$set:{...req.body}},
+    {new:true,runValidators:true}
+  );
+  if(!result){
+    return res.status(404).json({message:"Subject not found"})
+  }
+  res.status(200).json({message:"Subject data updated successfully",payload:result})
+})
+
+subjectapp.get("/all",verifyToken(...ALL_ROLES),async(req,res)=>{
+  const subjects=await subjectmodel.find()
+    .populate("collegeinfo","name code")
+    .populate("deptinfo","name")
+    .populate("courseinfo","name code")
+    .populate("teacherinfo","username email role department branch")
+    .populate("additionalFaculty","username email role department branch");
+  res.status(200).json({message:"Subjects fetched successfully",payload:subjects})
+})
+
+subjectapp.delete("/delete/:id",verifyToken("admin","hod"),async(req,res)=>{
+  const result=await subjectmodel.findByIdAndDelete(req.params.id);
+  if(!result){
+    return res.status(404).json({message:"Subject not found"})
+  }
+  res.status(200).json({message:"Subject deleted successfully",payload:result})
 })

@@ -1,0 +1,201 @@
+/* horizon-hero-section.css — cosmos hero styles (dark) */
+
+html {
+  scroll-behavior: smooth;
+}
+
+.hero-container.cosmos-style {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: transparent;
+}
+
+.hero-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  display: block;
+}
+
+.side-menu {
+  position: fixed;
+  top: 50%;
+  left: 1.75rem;
+  transform: translateY(-50%);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #93a4c4;
+}
+
+.menu-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.menu-icon span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: linear-gradient(90deg, #38e0f0, #3b6ef5);
+  border-radius: 2px;
+  transition: transform 0.3s cubic-bezier(0.65, 0.05, 0, 1);
+}
+
+.menu-icon:hover span:nth-child(1) {
+  transform: translateX(4px);
+}
+.menu-icon:hover span:nth-child(3) {
+  transform: translateX(-4px);
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.hero-content.cosmos-content {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.hero-title {
+  margin: 0;
+  font-size: clamp(3rem, 12vw, 9rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #f0f5ff;
+  text-shadow: 0 0 48px rgba(56, 224, 240, 0.28), 0 0 120px rgba(99, 102, 241, 0.18);
+}
+
+.hero-title .title-char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.hero-subtitle.cosmos-subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 34rem;
+}
+
+.hero-subtitle .subtitle-line {
+  margin: 0;
+  font-size: clamp(0.95rem, 2.2vw, 1.35rem);
+  line-height: 1.5;
+  color: #cdd9f0;
+  opacity: 0.9;
+}
+
+/* Scroll progress */
+.scroll-progress {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  color: #93a4c4;
+}
+
+.scroll-text {
+  font-family: ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.progress-track {
+  width: 140px;
+  height: 2px;
+  background: rgba(147, 164, 196, 0.22);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3b6ef5, #38e0f0);
+  border-radius: 999px;
+  transition: width 0.1s linear;
+}
+
+.section-counter {
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: #cdd9f0;
+}
+
+/* Additional scroll sections */
+.scroll-sections {
+  position: relative;
+  z-index: 10;
+}
+
+.content-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.content-section .hero-title {
+  font-size: clamp(2.5rem, 9vw, 6.5rem);
+}
+
+@media (max-width: 640px) {
+  .side-menu {
+    left: 0.75rem;
+  }
+  .scroll-progress {
+    right: 1rem;
+    bottom: 1.25rem;
+  }
+  .progress-track {
+    width: 96px;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #05070f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #33415f, #4a5a7a);
+  border-radius: 5px;
+  border: 2px solid #05070f;
+}

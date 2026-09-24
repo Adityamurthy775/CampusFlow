@@ -1,0 +1,70 @@
+POST http://localhost:4000/drive-api/create
+Content-Type: application/json
+
+{
+  "collegeinfo": "6a9c0eb0a3c69054efee779b",
+  "courseinfo": "6aa02058b098d274bba66a3c",
+  "deptinfo": "6a9c2560b29c8e7242a52612",
+  "companyinfo": "6a9bfa1c33cc985db46816c8",
+  "name": "TechCorp Placement Drive 2025",
+  "descp": "Campus recruitment drive for Software Engineer positions",
+  "role": "Software Engineer",
+    "location": "in-office",
+  "salary": 800000,
+  "applicationStart": "2025-03-01",
+  "applicationEnd": "2025-03-10",
+  "eligibility": {
+    "minCgpa": 7.0,
+    "maxBacklogs": 2,
+    "allowedDepartments": ["6a9c2560b29c8e7242a52612"]
+  },
+  "stages": [
+    {
+      "name": "Application",
+      "scheduledDate": "2025-03-05",
+      "mode": "online"
+    },
+    {
+      "name": "Aptitude Test",
+      "scheduledDate": "2025-03-08",
+      "mode": "online"
+    },
+    {
+      "name": "Technical Interview",
+      "scheduledDate": "2025-03-12",
+      "mode": "offline"
+    },
+    {
+      "name": "HR Interview",
+      "scheduledDate": "2025-03-15",
+      "mode": "offline"
+    }
+  ],
+  "status": "open"
+}
+
+###
+GET http://localhost:4000/drive-api/all
+
+###
+GET http://localhost:4000/drive-api/info/6aa11031225fa033a90d6d34
+
+###
+PATCH http://localhost:4000/drive-api/update/6aa11031225fa033a90d6d34
+Content-Type: application/json
+
+{
+  "name": "Updated: TechCorp Placement Drive 2025",
+  "salary": 900000
+}
+
+###
+PATCH http://localhost:4000/drive-api/update-status/6aa11031225fa033a90d6d34
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+###
+DELETE http://localhost:4000/drive-api/delete/6aa11031225fa033a90d6d34

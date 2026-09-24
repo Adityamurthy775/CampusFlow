@@ -1,0 +1,35 @@
+POST http://localhost:4000/announcement-api/create
+Content-Type: application/json
+
+{
+  "coursesinfo": "6aa02058b098d274bba66a3c",
+  "deptinfo": "6a9c2560b29c8e7242a52612",
+  "name": "Exam Schedule Update",
+  "content": "The mid-term examination schedule has been updated. Please check your respective timetables.",
+  "postedby": "6a9a5ec18602ee5fc1a2775b",
+  "priority": "high",
+  "ispinned": true
+}
+
+###
+GET http://localhost:4000/announcement-api/all
+
+###
+GET http://localhost:4000/announcement-api/info/6aa027ea1906a24c40558d28
+
+###
+PATCH http://localhost:4000/announcement-api/update/6aa027ea1906a24c40558d28
+Content-Type: application/json
+
+{
+  "name": "Updated: Exam Schedule Update",
+  "content": "Updated content about the exam schedule",
+  "priority": "urgent",
+  "ispinned": false
+}
+
+###
+PATCH http://localhost:4000/announcement-api/pin/6aa027ea1906a24c40558d28
+
+###
+DELETE http://localhost:4000/announcement-api/delete/6aa027ea1906a24c40558d28

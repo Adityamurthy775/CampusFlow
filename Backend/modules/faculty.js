@@ -35,6 +35,28 @@ const facultySchema = new Schema({
     min: 0,
     default: 0
   },
+  employeeCode: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  office: {
+    type: String,
+    trim: true
+  },
+  phone: {
+    type: String,
+    trim: true
+  },
+  officeHours: {
+    type: String,
+    trim: true
+  },
+  profileImage: {
+    type: String,
+    default: ""
+  },
   isActive: {
     type: Boolean,
     default: true

@@ -12,9 +12,12 @@ Content-Type: application/json
 
 
 ###
-PATCH http://localhost:4000/assignment-api/update/6aa0387370e3ebf5d6ce6d57
+PATCH http://localhost:4000/assignment-api/update/6aa11031225fa033a90d6d34
 Content-Type: application/json
 
 {
   "duedate":"20-9-2026"
 }
+
+###
+GET http://localhost:4000/assignment-api/info/6aa11031225fa033a90d6d34

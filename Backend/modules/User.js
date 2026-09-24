@@ -4,7 +4,7 @@ import { Schema,model } from "mongoose";
 let userschema=new Schema({
   role:{
     type:String,
-    enum:["teacher","student","placement-office","hod"],
+    enum:["admin","teacher","student","placement-office","hod"],
     required:true
   },
   username:{
@@ -21,9 +21,13 @@ let userschema=new Schema({
     required:true,
     unique:true
   },
+  studentid:{
+    type:String
+  },
   password:{
     type:String,
-    required:true
+    required:true,
+    select:false
   },
   phno:{
     type:Number,
@@ -35,6 +39,16 @@ let userschema=new Schema({
   branch:{
     type:String
 
+  },
+  year:{
+    type:Number,
+    min:1,
+    max:4
+  },
+  semester:{
+    type:Number,
+    min:1,
+    max:2
   },
   avatar:{
     type:String
