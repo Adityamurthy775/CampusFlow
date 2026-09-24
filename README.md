@@ -72,9 +72,10 @@ The detailed reference flowcharts below provide endpoint-level behavior.
 
 ## 📋 Table of Contents
 
-1. [Architecture Overview](#architecture-overview)
+1. [Quick start](#quick-start)
 2. [Rendered System Diagrams](#rendered-system-diagrams)
-3. [System Flowcharts](#system-flowcharts)
+3. [Architecture Overview](#architecture-overview)
+4. [System Flowcharts](#system-flowcharts)
    - 1. [Overall Request Flow](#1-overall-request-flow)
    - 2. [User Registration & Authentication Flow](#2-user-registration--authentication-flow)
    - 3. [Assignment & Submission Flow](#3-assignment--submission-flow)
@@ -85,12 +86,14 @@ The detailed reference flowcharts below provide endpoint-level behavior.
    - 8. [JWT Authentication & Authorization Flow](#8-jwt-authentication--authorization-flow)
    - 9. [Mongoose Populate & Cross-Collection Query Flow](#9-mongoose-populate--cross-collection-query-flow)
    - 10. [Soft Delete & Error Handling Flow](#10-soft-delete--error-handling-flow)
-4. [Folder Structure](#folder-structure)
-5. [Technology Stack](#technology-stack)
-6. [Backend — Modules & APIs](#backend--modules--apis)
-7. [Frontend — Structure & Working](#frontend--structure--working)
-8. [Setup & Installation](#setup--installation)
-9. [API Endpoint Reference](#api-endpoint-reference)
+5. [Folder Structure](#folder-structure)
+6. [Technology Stack](#technology-stack)
+7. [Backend — Modules & APIs](#backend--modules--apis)
+8. [Frontend — Structure & Working](#frontend--structure--working)
+9. [Setup & Installation](#setup--installation)
+10. [API Endpoint Reference](#api-endpoint-reference)
+11. [Rate Limiting](#rate-limiting)
+12. [Key Relationships Between Models](#key-relationships-between-models)
 
 ---
 
@@ -133,7 +136,7 @@ The detailed reference flowcharts below provide endpoint-level behavior.
 │                           DATABASE LAYER                                │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ ┌─────────────────────────────────────────────────────────────────────┐ │
-│ │                           MongoDB                            │ │
+│ │                              MongoDB                              │ │
 │ │ ┌───────────────────────────────────────────────────────────────┐   │ │
 │ │ │                                                               │   │ │
 │ │ │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌─────────┐  │   │ │
@@ -514,22 +517,24 @@ CampusFlow/
 │   │   ├── 📄 verifyToken.js            # JWT cookie and role verification
 │   │   └── 📄 upload.js                 # Multer limits and attachment helpers
 │   │
-│   └── 📂 req/                          # HTTP request files for testing
-│       ├── 📄 user.http
-│       ├── 📄 studentreq.http
-│       ├── 📄 facultyreq.http
-│       ├── 📄 collegereq.http
-│       ├── 📄 deptreq.http
-│       ├── 📄 coursereq.http
-│       ├── 📄 subjectreq.http
-│       ├── 📄 assignmentreq.http
-│       ├── 📄 submissionreq.http
-│       ├── 📄 attendancereq.http
-│       ├── 📄 announcementreq.http
-│       ├── 📄 eventreq.http
-│       ├── 📄 companyreq.http
-│       ├── 📄 drivereq.http
-│       └── 📄 requestreq.http
+│   ├── 📂 req/                          # HTTP request files for testing
+│   │   ├── 📄 user.http
+│   │   ├── 📄 studentreq.http
+│   │   ├── 📄 facultyreq.http
+│   │   ├── 📄 collegereq.http
+│   │   ├── 📄 deptreq.http
+│   │   ├── 📄 coursereq.http
+│   │   ├── 📄 subjectreq.http
+│   │   ├── 📄 assignmentreq.http
+│   │   ├── 📄 submissionreq.http
+│   │   ├── 📄 attendancereq.http
+│   │   ├── 📄 announcementreq.http
+│   │   ├── 📄 eventreq.http
+│   │   ├── 📄 companyreq.http
+│   │   ├── 📄 drivereq.http
+│   │   └── 📄 requestreq.http
+│
+│   ├── 📄 README.md                    # Backend-specific guide
 │
 ├── 📂 Frontend/                         # React + Vite frontend application
 │   ├── 📄 package.json                  # Frontend dependencies
@@ -556,7 +561,7 @@ CampusFlow/
 │           ├── 🖼️ react.svg              # React logo
 │           └── 🖼️ vite.svg               # Vite logo
 │
-│   └── 📄 README.md                         # This file
+└── 📄 README.md                         # This file
 ```
 ---
 
