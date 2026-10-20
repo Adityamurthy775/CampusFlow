@@ -96,13 +96,3 @@ handover.md
 # Kept locally but not committed
 # ==========================================
 Frontend/src/assets/dashboard.png
-Frontend/src/components/ui/StaggeredMenu.jsx
-Frontend/src/components/ui/badge.jsx
-Frontend/src/components/ui/bento-features-demo.jsx
-Frontend/src/components/ui/bento-product-features.jsx
-Frontend/src/components/ui/card.jsx
-Frontend/src/components/ui/features-01.jsx
-Frontend/src/components/ui/footer-section-4.jsx
-Frontend/src/components/ui/hero-01.jsx
-Frontend/src/components/ui/saa-s-template.jsx
-Frontend/src/components/ui/switch.jsx
