@@ -1,162 +1,56 @@
-import { colorPalettes, heroActions } from "@/common";
+import { ArrowUpRight } from "lucide-react";
 import { navigate } from "@/lib/router";
-import { useCampusStore } from "@/lib/useCampusStore";
-import Button from "./ui/button";
-import FlowArt, { FlowSection } from "./ui/story-scroll";
-import HorizonHero from "./ui/horizon-hero-section";
-import StackingCards, { StackingCardItem } from "./ui/stacking-cards";
+import Hero from "./ui/hero-01";
+import BentoFeatures from "./ui/bento-features-demo";
+import { Navigation } from "./ui/saa-s-template";
 
 export default function Home() {
-  const experienceCards = useCampusStore((state) => state.experienceCards);
-  const storySections = useCampusStore((state) => state.storySections);
-  const features = useCampusStore((state) => state.features);
-
   return (
-    <>
+    <main className="min-h-screen bg-background text-foreground">
+      <Navigation />
       <div id="top" />
-      <HorizonHero actions={heroActions} />
-
-      <section className="stacking-section" id="experience">
-        <div className="section-intro">
-          <div>
-            <p className="eyebrow">Designed around campus life</p>
-            <h2>Everything connected.<br />Nothing overwhelming.</h2>
-          </div>
-          <div>
-            <p>
-              Scroll through the moments CampusFlow keeps close, from the first
-              class of the day to the opportunity waiting after it.
-            </p>
-            <Button onClick={() => navigate("/signup")}>Join CampusFlow</Button>
-          </div>
-        </div>
-
-        <StackingCards
-          className="stacking-track"
-          totalCards={experienceCards.length}
-          scaleMultiplier={0.025}
-          aria-label="CampusFlow experience cards"
-        >
-          {experienceCards.map((card, index) => (
-            <StackingCardItem
-              className="stacking-card-frame"
-              index={index}
-              key={card.title}
-            >
-              <article
-                className="stacking-card"
-                style={{
-                  "--card-bg": colorPalettes.bigCardThemes[index].background,
-                  "--card-shadow": colorPalettes.bigCardThemes[index].shadow,
-                  "--card-text": colorPalettes.bigCardThemes[index].text,
-                  "--card-muted": colorPalettes.bigCardThemes[index].muted,
-                  "--card-accent": colorPalettes.bigCardThemes[index].accent,
-                }}
-              >
-                <div className="stacking-card-copy">
-                  <p className="stacking-card-eyebrow">
-                    {card.eyebrow} / 0{index + 1}
-                  </p>
-                  <h3>{card.title}</h3>
-                  <p>{card.description}</p>
-                  <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-                    Open your workspace <span aria-hidden="true">↗</span>
-                  </Button>
-                </div>
-                <div className="stacking-card-image">
-                  <img
-                    src={card.image}
-                    alt=""
-                    width="800"
-                    height="600"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-              </article>
-            </StackingCardItem>
-          ))}
-        </StackingCards>
+      <Hero />
+      <section id="features" className="section-wash px-6 py-24">
+        <BentoFeatures />
       </section>
-
-      <FlowArt className="landing-story" aria-label="The CampusFlow story">
-        {storySections.map((section, index) => (
-          <FlowSection
-            aria-label={section.label}
-            key={section.number}
-            style={{
-              backgroundColor: colorPalettes.storyCardThemes[index].background,
-              color: colorPalettes.storyCardThemes[index].text,
-              "--story-accent": colorPalettes.storyCardThemes[index].accent,
-              "--story-rule": colorPalettes.storyCardThemes[index].rule,
-              "--story-muted": colorPalettes.storyCardThemes[index].muted,
-              "--story-button-text": colorPalettes.storyCardThemes[index].buttonText,
-            }}
-          >
-            <p className="story-kicker">{section.number} — {section.label}</p>
-            <hr className="story-rule" />
-            <h2>
-              {section.headline.map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </h2>
-            <hr className="story-rule" />
-            <div className="story-bottom">
-              <p>{section.copy}</p>
-              {section.stats && (
-                <div className="story-stats">
-                  {section.stats.map(([title, copy]) => (
-                    <div key={title}>
-                      <strong>{title}</strong>
-                      <p>{copy}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            {index === storySections.length - 1 && (
-              <Button onClick={() => navigate("/signup")}>
-                Find your place <span aria-hidden="true">↗</span>
-              </Button>
-            )}
-          </FlowSection>
-        ))}
-      </FlowArt>
-
-      <section className="features-section" id="features" aria-labelledby="features-title">
-        <div className="features-heading">
-          <div>
-            <p className="eyebrow">Website features</p>
-            <h2 id="features-title">Everything campus life needs.</h2>
-          </div>
-          <p>
-            One connected platform for academic work, campus communication,
-            progress, and opportunity.
+      <section id="join" className="px-6 py-24 sm:px-8 lg:px-12 lg:py-32">
+        <div className="mx-auto max-w-7xl rounded-[32px] border border-secondary bg-card p-8 text-center sm:p-12 lg:p-16">
+          <p className="inline-flex items-center gap-2 rounded-full border border-secondary bg-secondary px-4 py-1.5 text-sm font-semibold text-secondary-foreground">
+            Ready when you are
           </p>
-        </div>
-        <div className="feature-grid">
-          {features.map((feature) => {
-            const theme = colorPalettes.cardThemes[feature.theme];
-            return (
-              <article
-                className="feature-card"
-                key={feature.title}
-                style={{
-                  "--feature-bg": theme.background,
-                  "--feature-shadow": theme.shadow,
-                  "--feature-text": theme.text,
-                  "--feature-muted": theme.muted,
-                  "--feature-accent": theme.accent,
-                }}
-              >
-                <span>{feature.meta}</span>
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
-              </article>
-            );
-          })}
+          <h2 className="mt-6 font-heading text-3xl font-bold sm:text-4xl lg:text-5xl">
+            Bring your campus into one calm view
+          </h2>
+          <p className="mx-auto mt-5 max-w-3xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+            Classes, deadlines, announcements, and placements — connected in one
+            place, so nothing slips through the day.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="group inline-flex items-center gap-3 rounded-full bg-accent px-8 py-4 font-semibold text-accent-foreground transition hover:-translate-y-0.5 hover:bg-accent/90"
+            >
+              Join CampusFlow
+              <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="rounded-full border border-primary/40 bg-card px-8 py-4 font-semibold text-foreground transition hover:bg-secondary"
+            >
+              Sign in
+            </button>
+          </div>
+          <div className="mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-x-10 gap-y-4 border-t border-border pt-8">
+            {[["3", "views, one login"], ["24/7", "campus access"], ["1", "calm workspace"], ["0", "scattered tabs"]].map(([n, l]) => (
+              <span key={l} className="text-sm text-muted-foreground">
+                <b className="font-heading text-xl font-bold text-foreground">{n}</b> {l}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
-    </>
+    </main>
   );
 }

@@ -1,13 +1,13 @@
 :root {
-  --sgn-bg: #f6f0e4;
+  --sgn-bg: #f7f4ee;
   --sgn-surface: #fffdf6;
   --sgn-surface-2: #f0e9da;
-  --sgn-ink: #22312a;
-  --sgn-muted: #6d6a5c;
+  --sgn-ink: #173a37;
+  --sgn-muted: #68756e;
   --sgn-line: rgba(34, 49, 42, 0.16);
-  --sgn-accent: #f2c14e;
-  --sgn-pine: #2c6b4d;
-  --sgn-clay: #d4693f;
+  --sgn-accent: #d9b76e;
+  --sgn-pine: #315c57;
+  --sgn-clay: #8a6a1f;
   --sgn-cubic: cubic-bezier(0.65, 0.05, 0, 1);
 }
 
@@ -65,16 +65,14 @@
   border-radius: 999px;
   background: var(--sgn-surface);
   color: var(--sgn-ink);
-  font: 800 0.9rem/1 Inter, ui-sans-serif, system-ui, sans-serif;
+  font: 800 0.9rem/1 Nunito, ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.035em;
-  box-shadow: 0 8px 24px rgba(34, 49, 42, 0.1);
-  transition: transform 0.3s var(--sgn-cubic), box-shadow 0.3s var(--sgn-cubic);
+  transition: transform 0.3s var(--sgn-cubic);
 }
 
 .nav-logo-row:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(34, 49, 42, 0.15);
-}
+  }
 
 .nav-logo-row svg {
   width: 26px;
@@ -174,8 +172,7 @@
   overflow: hidden;
   border-left: 1px solid var(--sgn-line);
   background: var(--sgn-surface);
-  box-shadow: -30px 0 90px rgba(34, 49, 42, 0.24);
-}
+  }
 
 .backdrop-layer {
   position: absolute;
@@ -189,7 +186,7 @@
 }
 
 .backdrop-layer.second {
-  background: linear-gradient(155deg, #f7e5b2 0%, #f2c14e 100%);
+  background: linear-gradient(155deg, #f7e5b2 0%, #d9b76e 100%);
 }
 
 .backdrop-layer:not(.first):not(.second) {
@@ -285,7 +282,7 @@
   max-width: 9ch;
   margin: 0.8rem 0 2rem;
   color: var(--sgn-ink);
-  font: 400 clamp(2.8rem, 6vw, 5.6rem) / 0.92 Georgia, serif;
+  font: 400 clamp(2.8rem, 6vw, 5.6rem) / 0.92 Sora, sans-serif;
   letter-spacing: -0.055em;
 }
 
@@ -353,7 +350,7 @@
 }
 
 .nav-link-copy strong {
-  font: 400 clamp(1.85rem, 4.5vw, 3.6rem) / 0.95 Georgia, serif;
+  font: 400 clamp(1.85rem, 4.5vw, 3.6rem) / 0.95 Sora, sans-serif;
   letter-spacing: -0.045em;
 }
 
@@ -363,7 +360,7 @@
 }
 
 .nav-link-arrow {
-  font: 400 1.2rem/1 Inter, ui-sans-serif, system-ui, sans-serif;
+  font: 400 1.2rem/1 Nunito, ui-sans-serif, system-ui, sans-serif;
   transition: transform 0.3s var(--sgn-cubic);
 }
 

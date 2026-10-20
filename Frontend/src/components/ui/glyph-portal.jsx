@@ -594,7 +594,7 @@ export default function GlyphPortal({
         ${query}[data-gp-motion=on]:has([data-gp-content]:focus-within) [data-gp-field]{clip-path:none!important;}
         ${query}[data-gp-motion=on] [data-gp-content]:focus-within{opacity:1;pointer-events:auto;}
         ${query}:has([data-gp-content]:focus-within) [data-gp-caption],${query}:has([data-gp-content]:focus-within) [data-gp-marks]{opacity:0;}
-        ${query} [data-gp-default-title]{color:inherit;font:400 clamp(32px,5vw,72px)/1.05 Georgia,serif;letter-spacing:-.035em;max-width:13ch;margin:0 0 24px;text-wrap:balance;}
+        ${query} [data-gp-default-title]{color:inherit;font:400 clamp(32px,5vw,72px)/1.05 Sora, sans-serif;letter-spacing:-.035em;max-width:13ch;margin:0 0 24px;text-wrap:balance;}
         ${query} [data-gp-default-copy]{color:inherit;font:16px/1.6 Arial,sans-serif;max-width:36ch;margin:0;}
         @media(prefers-reduced-motion:reduce){${query} [data-gp-pin]{position:relative!important;} ${query} [data-gp-content]{margin-top:0!important;opacity:1!important;background:var(--gp-field)!important;min-height:0;padding-block:64px;} ${query} [data-gp-caption]{opacity:1!important;}}
         @media(prefers-reduced-motion:reduce){${query} [data-gp-hint]{display:none;}}
@@ -613,7 +613,7 @@ export default function GlyphPortal({
                 inset: 0,
                 transform: "scale(var(--gp-field-scale,1))",
                 background:
-                  "radial-gradient(circle at 18% 8%, rgba(242,193,78,.48), transparent 34%), radial-gradient(circle at 82% 20%, rgba(255,255,255,.12), transparent 28%), radial-gradient(circle at 48% 78%, rgba(44,107,77,.55), transparent 44%), linear-gradient(135deg,#003049 0%,#2c6b4d 52%,#780000 100%)",
+                  "radial-gradient(circle at 18% 8%, rgba(242,193,78,.48), transparent 34%), radial-gradient(circle at 82% 20%, rgba(255,255,255,.12), transparent 28%), radial-gradient(circle at 48% 78%, rgba(44,107,77,.55), transparent 44%), linear-gradient(135deg,#173a37 0%,#315c57 52%,#173a37 100%)",
               }}
             />
           )}

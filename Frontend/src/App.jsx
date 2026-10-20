@@ -7,14 +7,14 @@ import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Dashboard from "@/pages/dashboard";
 
-let introPlayed = false;
+let introPlayed = typeof sessionStorage !== "undefined" && sessionStorage.getItem("cf-intro") === "1";
 
 function Routes() {
   const path = useHashRoute();
   const { user, loading } = useAuth();
 
   if (loading && path !== "/") {
-    return <div className="app-loader">Loading CampusFlow…</div>;
+    return <div className="app-loader" role="status" aria-live="polite"><div className="app-loader-dialog"><span className="app-loader-spinner" /><strong>Loading CampusFlow</strong><small>Hang tight while we fetch your campus data…</small></div></div>;
   }
   if (path === "/login") return <Login />;
   if (path === "/signup") return <Signup />;
@@ -32,6 +32,9 @@ export default function App() {
   const [ready, setReady] = useState(introPlayed);
   const complete = useCallback(() => {
     introPlayed = true;
+    try {
+      sessionStorage.setItem("cf-intro", "1");
+    } catch {}
     setReady(true);
   }, []);
 

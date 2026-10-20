@@ -1,13 +1,11 @@
-import Footer from "@/components/footer";
+import Footer4 from "@/components/ui/footer-section-4";
 import Home from "@/components/home";
-import Navbar from "@/components/navbar";
 
 export default function Landing() {
   return (
     <div className="landing-page">
-      <Navbar />
       <Home />
-      <Footer />
+      <Footer4 />
     </div>
   );
 }
